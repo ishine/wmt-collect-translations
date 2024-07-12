@@ -1,0 +1,6 @@
+.history*
+__pycache__
+cache
+submissions
+wmt_testset
+wmt_translations

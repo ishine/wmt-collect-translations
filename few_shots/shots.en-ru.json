@@ -1,0 +1,14 @@
+[
+  {
+    "source": "The hacked up version of Jedi Knight was crashing because it was calling a function off the end of a vtable.",
+    "target": "Взломанная версия Jedi Knight вылетала из-за того, что вызывала функцию с конца виртуальной таблицы."
+  },
+  {
+    "source": "Who at that pathetic, dying network was responsible for vetting the so-called \"independent voters\" in the audience?",
+    "target": "Кто на этом жалком умирающем телеканале отвечал за проверку так называемых «независимых избирателей» среди зрителей?"
+  },
+  {
+    "source": "The suspect is charged with two counts of felony first-degree murder and two counts of felony attempted murder, Chicago Police superintendent David Brown announced.",
+    "target": "Подозреваемый обвиняется по двум пунктам по делу об убийстве первой степени и двум пунктам по делу о покушении на убийство, сообщил Дэвид Браун, начальник полиции Чикаго."
+  }
+]

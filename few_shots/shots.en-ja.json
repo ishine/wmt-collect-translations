@@ -1,0 +1,14 @@
+[
+  {
+    "source": "And some of our submission papers would come later for the PBML proceedings.",
+    "target": "そして、提出論文の中には後でPBMLの論文集にのるかもしれません。"
+  },
+  {
+    "source": "(PERSON3) The thing is, as long as we do the analysis more properly, one thing is the possible adversarial evaluation, just to indicate that that the constraints are actually having an impact on the actual output.",
+    "target": "(PERSON3)要は、僕らがもっときちんと解析してさえおけば、ひとつは敵対的評価ができるかもしれないし、制約が実際の出力に影響を及ぼしていることを単に表示するためにね。"
+  },
+  {
+    "source": "One per customer rules remain as we try to ensure everyone who queues up can get their hands on a board.",
+    "target": "お一人様一点限りのルールは、お並び頂いた皆様に確実に行き渡るようにするためのものです。"
+  }
+]
