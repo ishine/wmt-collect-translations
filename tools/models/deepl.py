@@ -18,7 +18,7 @@ supported_languages_deepl = [
     "sl", "sv", "tr", "uk", "zh"
 ]
 
-def translate_with_deepl(segment: str, source_language=None, target_language="de"):    
+def translate_with_deepl(segment: str, source_language=None, target_language=None):    
     client = lazy_get_client()
 
     if target_language not in supported_languages_deepl:

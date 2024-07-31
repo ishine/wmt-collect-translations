@@ -136,6 +136,11 @@ def main(args):
 
                 cache[request] = translated[-1]
 
+        # if most are None, the system doesn't support the language
+        if sum([1 for t in translated if t is None]) > len(translated) / 2:
+            logging.info(f"Skipping {lp} as it is not supported by {FLAGS.system}")
+            continue
+
         input_token_count = 0
         output_token_count = 0
         with open(target_filename, "w") as f:
