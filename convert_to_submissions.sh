@@ -1,3 +1,5 @@
+rm -r submissions
+
 mkdir -p submissions
 
 
