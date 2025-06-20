@@ -30,5 +30,5 @@ def translate_with_deepl(segment: str, source_language=None, target_language=Non
                     target_lang=target_language,
                 )
     
-    return result.text
+    return result.text, None
 

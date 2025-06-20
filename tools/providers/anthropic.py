@@ -12,14 +12,21 @@ def lazy_get_client():
     return CLIENT
 
 
-def anthropic_claude_35(prompt):
+def process_with_claude_3_7(request):
+    return process_with_anthropic(request, "claude-3-7-sonnet-20250219", max_tokens=8192)
+
+
+def process_with_claude_4(request):
+    return process_with_anthropic(request, "claude-sonnet-4-20250514", max_tokens=8192)
+
+def process_with_anthropic(request, model, max_tokens):
     client = lazy_get_client()
 
     response = client.messages.create(
-        model="claude-3-5-sonnet-20240620",
-        max_tokens=2000,
+        model=model,
+        max_tokens=max_tokens,
         temperature=0,
-        messages=prompt
+        messages=[{"role": "user", "content": request['prompt']}]
     )
 
     if response.stop_reason != 'end_turn':
@@ -28,5 +35,9 @@ def anthropic_claude_35(prompt):
 
     assert response.stop_reason == 'end_turn', f"Finish reason: {response.stop_reason}"
 
-    return response.content[0].text, (response.usage.input_tokens, response.usage.output_tokens)
+    return response.content[0].text, {
+        "input_tokens": response.usage.input_tokens,
+        "output_tokens": response.usage.output_tokens,
+        "thinking_tokens": 0
+    }
 
