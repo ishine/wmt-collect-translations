@@ -1,6 +1,7 @@
 import os
 import copy
 import logging
+from tools.errors import ERROR_MAX_TOKENS
 
 
 CLIENT = None
@@ -44,8 +45,11 @@ def process_with_cohere(request, model, max_tokens=8192):
         max_tokens=max_tokens,
     )
 
+    if response.finish_reason == 'MAX_TOKENS':
+        return ERROR_MAX_TOKENS
+
     if response.finish_reason != "COMPLETE":
-        logging.warning(f"Finish reason: {response.finish_reason}; {response.text}")
+        logging.warning(f"Finish reason: {response.finish_reason}")
         return None
 
     assert response.finish_reason == "COMPLETE", f"Finish reason: {response.finish_reason}"

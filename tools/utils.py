@@ -19,12 +19,10 @@ from tools.providers.google_translate import translate_with_google_api
 from tools.providers.yandex_translate import translate_with_yandex
 from tools.providers.mistral import process_with_mistral_medium, process_with_magistral_medium
 from tools.providers.gemini import process_with_gemini_2_5_pro, process_with_gemma_3_12b, process_with_gemma_3_27b
-
-
 from tools.providers.microsoft_translator import translate_with_microsoft_api
 from tools.providers.deepl import translate_with_deepl
 from tools.providers.phi import translate_with_phi3_medium
-
+from tools.errors import ERROR_MAX_TOKENS
 
 SYSTEMS = {
     'CommandA': process_with_command_A,
@@ -82,7 +80,10 @@ def remove_tripple_quotes(text):
     return text
 
 def _request_system(system_name, request):
-    for translation_granularity in ['document-level', 'document-level-wrapped', 'document-level-html']:
+    attempt_document_level = True
+    for translation_granularity in ['document-level', 'document-level-wrapped', 'document-level-html', 'paragraph-level']:
+        if not attempt_document_level and translation_granularity != 'paragraph-level':
+            continue
 
         if translation_granularity == 'document-level':
             request['prompt'] = f"{request['prompt_instruction']}\n\n{request['segment']}"
@@ -100,24 +101,47 @@ def _request_system(system_name, request):
             instruction = request['prompt_instruction'].replace('Please translate the following', 'Keep HTML tags in the answer. Please translate the following')
             request['prompt'] = f"{instruction}\n\n{segment}"
 
-        if len(request['prompt']) == 0:
-            ipdb.set_trace()
+        if translation_granularity != 'paragraph-level':
+            answer = SYSTEMS[system_name](request)
 
-        answer, tokens = SYSTEMS[system_name](request)
+            if answer is None:
+                print(f"System {system_name} returned None for doc_id {request['doc_id']} with translation granularity {translation_granularity}")
+                continue
+            if answer == ERROR_MAX_TOKENS:
+                print(f"System {system_name} returned ERROR_MAX_TOKENS for doc_id {request['doc_id']} with translation granularity {translation_granularity}")
+                attempt_document_level = False
+                continue
 
-        if answer is None:
-            print(f"System {system_name} returned None for doc_id {request['doc_id']} with translation granularity {translation_granularity}")
-            return None
+            answer, tokens = answer
 
-        if translation_granularity == 'document-level-wrapped':
-            answer = remove_tripple_quotes(answer)
-        elif translation_granularity == 'document-level-html':
-            # Step 1: Normalize all <br> by trimming \n around them
-            answer = re.sub(r'\n*\s*<br>\s*\n*', '<br>', answer)
-            # Step 2: Collapse multiple newlines into one
-            answer = re.sub(r'\n{2,}', '\n', answer)
-            # Step 3: Replace <br> with double newline
-            answer = answer.replace('<br>', '\n\n')
+            if translation_granularity == 'document-level-wrapped':
+                answer = remove_tripple_quotes(answer)
+            elif translation_granularity == 'document-level-html':
+                # Step 1: Normalize all <br> by trimming \n around them
+                answer = re.sub(r'\n*\s*<br>\s*\n*', '<br>', answer)
+                # Step 2: Collapse multiple newlines into one
+                answer = re.sub(r'\n{2,}', '\n', answer)
+                # Step 3: Replace <br> with double newline
+                answer = answer.replace('<br>', '\n\n')
+        else:
+            answers = []
+            tokens = {}
+            for paragraph in request['segment'].split('\n\n'):
+                request['prompt'] = f"{request['prompt_instruction']}\n\n{paragraph}"
+                response = SYSTEMS[system_name](request)
+                if response is None:
+                    # this is likely some inference error
+                    return None
+                
+                translated_paragraph, paragraph_tokens = response
+                translated_paragraph = re.sub(r'\n{2,}', '\n', translated_paragraph)
+                answers.append(translated_paragraph.strip())
+                # add tokens to the dictionary
+                for key, value in paragraph_tokens.items():
+                    if key not in tokens:
+                        tokens[key] = 0
+                    tokens[key] += value
+            answer = '\n\n'.join(answers)
 
 
         answer = answer.strip()

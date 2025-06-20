@@ -21,14 +21,15 @@ def main(args):
     # print("DEBUG: downsampling dataset")
     # blindset = blindset.head(3090).tail(10)
 
-    print("DEBUG: skipping testsuites")
-    blindset = blindset[blindset['collection_id']=='general']
+    # print("DEBUG: skipping testsuites")
+    # blindset = blindset[blindset['collection_id']=='general']
 
-    blindset = blindset[blindset['tgt_lang']=='cs_CZ']
 
     answers = collect_answers(blindset, FLAGS.system)
-    
-    ipdb.set_trace()
+
+    # # make dataframe but drop None items in the list
+    # df = pd.DataFrame([a for a in answers if a is not None])
+    # ipdb.set_trace()
 
 if __name__ == '__main__':
     app.run(main)
