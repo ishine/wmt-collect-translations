@@ -32,7 +32,7 @@ def translate_with_microsoft_api(segment: str, source_language=None, target_lang
     response = request.json()
 
     assert len(response[0]["translations"]) == 1, "More than one translation returned, this needs to be investigated."
-    return response[0]["translations"][0]['text']
+    return response[0]["translations"][0]['text'], None
 
 def bulk_translate_with_microsoft(segments, source_pt1_iso, target_pt1_iso):
     assert "MTAPI_SUBSCRIPTION_KEY" in os.environ, "Please set the MTAPI_SUBSCRIPTION_KEY environment variable."

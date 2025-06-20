@@ -54,5 +54,7 @@ def translate_with_phi3_medium(prompt):
 
     assert response['choices'][0]['finish_reason'] == "stop", f"Finish reason: {response['choices'][0]['finish_reason']}"
 
-    return response['choices'][0]['message']['content'], (response['usage']['prompt_tokens'], response['usage']['completion_tokens'])
+    return response['choices'][0]['message']['content'], {"input_tokens": response['usage']['prompt_tokens'],
+                                                           "output_tokens": response['usage']['completion_tokens'],
+                                                           "thinking_tokens": 0}
 
