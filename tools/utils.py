@@ -97,8 +97,15 @@ def _request_system(system_name, request):
             if system_name in non_prompt_systems:
                 continue
             segment = request['segment'].replace('\n\n', '\n<br>\n\n')
-            assert "Please translate the following" in request['prompt_instruction'], "Prompt instruction should contain 'Please translate the following'"
-            instruction = request['prompt_instruction'].replace('Please translate the following', 'Keep HTML tags in the answer. Please translate the following')
+            # Translate the following text:
+            if "Please translate the following" in request['prompt_instruction']:
+                instruction = request['prompt_instruction'].replace('Please translate the following', 'Keep HTML tags in the answer. Please translate the following')
+            elif "Translate the following" in request['prompt_instruction']:
+                # used in Testsuites
+                instruction = request['prompt_instruction'].replace('Translate the following', 'Keep HTML tags in the answer. Translate the following')
+            else:
+                raise ValueError("Prompt instruction should contain 'Please translate the following' or 'Translate the following'")
+            
             request['prompt'] = f"{instruction}\n\n{segment}"
 
         if translation_granularity != 'paragraph-level':
