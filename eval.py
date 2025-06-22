@@ -1,5 +1,6 @@
 """
   Title: Machine Translation API command line tool for translating WMT testsets
+  Purpose: To validate that translation pipeline is not broken with BLEU rather than checking quality of translations.
   Author: Tom Kocmi
 """
 
@@ -16,48 +17,39 @@ FLAGS = flags.FLAGS
 
 def main(args):
     print("Calculating BLEU over WMT testset to check for problems. Do not use BLEU for comparing quality of translations")
-    folder = "test/*.xml"
 
     sys_scores = {}
-    for file in tqdm(glob.glob(folder), "Calculating BLEU over WMT testset", position=0):
-        lp = file.split(".")[-2]
-        if "-" not in lp:
+    reference_system = "GoogleTranslate"
+    ref = pd.read_json("wmt_translations/" + reference_system + ".jsonl", lines=True)
+    ref['lp'] = ref['doc_id'].apply(lambda x: x.split("_#_")[0])
+    for file in tqdm(glob.glob('wmt_translations/*.jsonl'), "Verifying systems", position=0):
+        system = os.path.basename(file).replace(".jsonl", "")
+        df = pd.read_json(file, lines=True)
+
+        # keep only rows in reference system over column doc_id
+        df = df[df['doc_id'].isin(ref['doc_id'])]
+
+        if len(df) != len(ref):
+            print(f"Length mismatch for system {file}: {len(df)} vs {len(ref)}")
             continue
-        sys_scores[lp] = {}
-        
-        source_language = lp.split("-")[0]
-        target_language = lp.split("-")[1]
 
-        sources = []
-        references = []
-        
-        src_file = f"{file}.no-testsuites.{source_language}"
-        ref_file = f"{file}.no-testsuites.{target_language}"
+        # add a column ref into df with reference translations by aligning on doc_id column
+        df = df.merge(ref[['doc_id', 'translation']], on='doc_id', how='left', suffixes=('', '_ref'))
 
-        with open(src_file) as f:
-            sources = f.readlines()
-            sources = [line.strip() for line in sources]
+        df['lp'] = ref['doc_id'].apply(lambda x: x.split("_#_")[0])
+        for lp in df['lp'].unique():
+            if lp not in sys_scores:
+                sys_scores[lp] = {}
 
-        with open(ref_file) as f:
-            references = f.readlines()
-            references = [line.strip() for line in references]
-
-        for system in glob.glob(f"wmt_translations/*"):
-            sys_file = system + "/" + src_file.split("/")[-1].replace("2024", "2024.src")
-            hypothesis = []
-            if not os.path.exists(sys_file):
-                continue
-            with open(sys_file) as f:
-                hypothesis = f.readlines()
-                hypothesis = [line.strip() for line in hypothesis]
-
-            assert len(hypothesis) == len(references), f"Length mismatch: {system} {lp}"
-
-            score = sacrebleu.corpus_bleu(hypothesis, [references]).score 
+            score = sacrebleu.corpus_bleu(df['translation'].to_list(), [df['translation_ref'].to_list()]).score 
             sys_scores[lp][system] = score
         
-
-    pd.DataFrame(sys_scores).to_excel("BLEU_scores.xlsx")
+    scores = pd.DataFrame(sys_scores)
+    # sort by average over all columns
+    scores['average'] = scores.mean(axis=1)
+    scores = scores.sort_values(by='average', ascending=False)
+    
+    print(scores)
 
 if __name__ == '__main__':
     app.run(main)
