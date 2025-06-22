@@ -30,14 +30,18 @@ def process_with_mistral_7b(request):
 def process_with_together_ai(request, model, max_tokens=8192):
     client = lazy_get_client()
     import together
-
+    
     try:
         response = client.chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": request['prompt']}],
             max_tokens=max_tokens,
-            temperature=0,
-            enable_thinking=False,
+            temperature=0.0,
+            chat_template_kwargs={
+                "enable_thinking": False, # turns off QWEN thinking
+                "temperature": 0.0,  
+                "max_tokens": max_tokens
+            },
         )
     except together.error.APIError as e:
         print(e)

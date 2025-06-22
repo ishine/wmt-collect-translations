@@ -60,11 +60,15 @@ def translate_with_gemini(request, model, max_tokens):
     assert response.candidates[0].finish_reason == "STOP", f"Finish reason: {response.choices[0].finish_reason}"
 
 
-    thinking_tokens = 0
-    # check if it thoughts_token_count is in response.usage_metadata
-    if hasattr(response.usage_metadata, 'thoughts_token_count'):
-        thinking_tokens = response.usage_metadata.thoughts_token_count
+    input_tokens = response.usage_metadata.prompt_token_count
+    candidate_tokens = response.usage_metadata.candidates_token_count
+    thinking_tokens = response.usage_metadata.thoughts_token_count
 
-    return response.text, {"input_tokens": response.usage_metadata.input_token_count,
-                           "output_tokens": response.usage_metadata.output_token_count + thinking_tokens,
+    if candidate_tokens is None:
+        # gemma has only total prompt token count which equals to input tokens
+        thinking_tokens = 0
+        candidate_tokens = 0
+    
+    return response.text, {"input_tokens": input_tokens,
+                           "output_tokens": candidate_tokens + thinking_tokens,
                            "thinking_tokens": thinking_tokens}
