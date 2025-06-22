@@ -18,18 +18,21 @@ def main(args):
     assert os.path.exists("genmt_blindset_wmt25.jsonl"), "Download genmt_blindset_wmt25.jsonl file from WMT website"
     blindset = pd.read_json("genmt_blindset_wmt25.jsonl", lines=True)
 
-    # print("DEBUG: downsampling dataset")
-    # blindset = blindset.head(3090).tail(10)
-
     # print("DEBUG: skipping testsuites")
     # blindset = blindset[blindset['collection_id']=='general']
+
+    # print("DEBUG: skipping non Czech")
+    # blindset = blindset[blindset['tgt_lang']=='cs_CZ']
 
 
     answers = collect_answers(blindset, FLAGS.system)
 
-    # # make dataframe but drop None items in the list
-    # df = pd.DataFrame([a for a in answers if a is not None])
-    # ipdb.set_trace()
+    
+    # make dataframe but drop None items in the list
+    df = pd.DataFrame([a for a in answers if a is not None])
+
+    os.makedirs("wmt_translations", exist_ok=True)
+    df.to_json(f"wmt_translations/{FLAGS.system}.jsonl", orient='records', lines=True)
 
 if __name__ == '__main__':
     app.run(main)
