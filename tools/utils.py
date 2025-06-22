@@ -24,6 +24,7 @@ from tools.providers.deepl import translate_with_deepl
 from tools.providers.phi import translate_with_phi3_medium
 from tools.errors import ERROR_MAX_TOKENS
 
+# conda activate bee; source SECRETS.sh; python main.py --system
 SYSTEMS = {
     'CommandA': process_with_command_A,
     'CommandR7B': process_with_command_R7B,
@@ -37,7 +38,6 @@ SYSTEMS = {
     'GPT-4.1': process_with_openai_gpt4_1,
     'Claude-4': process_with_claude_4,
     "Mistral-Medium": process_with_mistral_medium,
-    "Magistral-Medium": process_with_magistral_medium,
     'YandexTranslate': translate_with_yandex,
     'GoogleTranslate': translate_with_google_api,
     'Gemini-2.5-Pro': process_with_gemini_2_5_pro,
@@ -46,7 +46,7 @@ SYSTEMS = {
 
     'DeepL': translate_with_deepl,
 
-    'Claude-3.7': process_with_claude_3_7,
+    "Magistral-Medium": process_with_magistral_medium, # model is not able to translate at all
     'MicrosoftTranslator': translate_with_microsoft_api,
     'Phi-3-Medium': translate_with_phi3_medium,
 }
@@ -133,21 +133,28 @@ def _request_system(system_name, request):
         else:
             answers = []
             tokens = {}
+            seg_request = request.copy()
             for paragraph in request['segment'].split('\n\n'):
-                request['prompt'] = f"{request['prompt_instruction']}\n\n{paragraph}"
-                response = SYSTEMS[system_name](request)
+                seg_request['prompt'] = f"{request['prompt_instruction']}\n\n{paragraph}"
+                seg_request['segment'] = paragraph
+
+                response = SYSTEMS[system_name](seg_request)
                 if response is None:
                     # this is likely some inference error
+                    return None
+                if response == ERROR_MAX_TOKENS:
+                    print(f"System {system_name} returned ERROR_MAX_TOKENS for doc_id {request['doc_id']} with translation granularity {translation_granularity}")
                     return None
                 
                 translated_paragraph, paragraph_tokens = response
                 translated_paragraph = re.sub(r'\n{2,}', '\n', translated_paragraph)
                 answers.append(translated_paragraph.strip())
                 # add tokens to the dictionary
-                for key, value in paragraph_tokens.items():
-                    if key not in tokens:
-                        tokens[key] = 0
-                    tokens[key] += value
+                if paragraph_tokens is not None:
+                    for key, value in paragraph_tokens.items():
+                        if key not in tokens:
+                            tokens[key] = 0
+                        tokens[key] += value
             answer = '\n\n'.join(answers)
 
 
@@ -197,7 +204,12 @@ def collect_answers(blindset, system_name):
 
         # None represent problem in the translation that was originally skipped
         if hashid not in cache or cache[hashid] is None:
-            cache[hashid] = _request_system(system_name, request)
+            try:
+                cache[hashid] = _request_system(system_name, request)
+            except Exception as e:
+                logging.error(f"Error processing {request['doc_id']} with {system_name}: {e}")
+                logging.error(traceback.format_exc())
+                cache[hashid] = None
 
         answers.append(cache[hashid])
 
