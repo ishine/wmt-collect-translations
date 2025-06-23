@@ -1,5 +1,5 @@
 import os
-from tools.errors import ERROR_MAX_TOKENS
+from tools.errors import ERROR_MAX_TOKENS, ERROR_UNSUPPORTED_LANGUAGE
 
 CLIENT = None
 def lazy_get_client():
@@ -23,6 +23,8 @@ def translate_with_yandex(request):
     except Exception as err:
         if str(err) == 'ERR_TEXT_TOO_LONG':
             return ERROR_MAX_TOKENS
+        if str(err) == 'ERR_LANG_NOT_SUPPORTED':
+            return ERROR_UNSUPPORTED_LANGUAGE
         raise err
 
     assert result.get('code') == 200, f"Yandex Translate API error: {result.get('code')} - {result.get('text')}"

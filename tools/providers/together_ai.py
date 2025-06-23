@@ -1,5 +1,6 @@
 import os
 import logging
+from tools.errors import ERROR_MAX_TOKENS
 
 CLIENT = None
 def lazy_get_client():
@@ -44,9 +45,11 @@ def process_with_together_ai(request, model, max_tokens=8192):
             },
         )
     except together.error.APIError as e:
-        print(e)
+        print(f"APIError: {e}")
         return None
 
+    if response.choices[0].finish_reason == "length":
+        return ERROR_MAX_TOKENS
     if response.choices[0].finish_reason != "stop":
         logging.warning(f"Finish reason: {response.choices[0].finish_reason}; {response.choices[0].message.content}")
         return None

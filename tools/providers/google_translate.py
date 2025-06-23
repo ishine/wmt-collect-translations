@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-import ipdb
+from tools.errors import ERROR_UNSUPPORTED_LANGUAGE
 
 CLIENT = None
 SUPPORTED_LANGUAGES = None
@@ -23,8 +23,7 @@ def get_supported_languages(lang):
     elif lang.split('_')[0] in SUPPORTED_LANGUAGES['language'].values:
         return lang.split('_')[0]
     else:
-        print(f"Language '{lang}' is not supported by Google Translate.")
-        return None
+        return ERROR_UNSUPPORTED_LANGUAGE
         
 
 def translate_with_google_api(request):    

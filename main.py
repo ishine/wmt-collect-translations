@@ -36,7 +36,7 @@ def main(args):
 
 
     os.makedirs("wmt_translations", exist_ok=True)
-    df.to_json(f"wmt_translations/{FLAGS.system}.jsonl", orient='records', lines=True)
+    df.to_json(f"wmt_translations/{FLAGS.system}.jsonl", orient='records', lines=True, force_ascii=False)
 
 if __name__ == '__main__':
     app.run(main)

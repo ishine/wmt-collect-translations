@@ -22,7 +22,7 @@ from tools.providers.gemini import process_with_gemini_2_5_pro, process_with_gem
 from tools.providers.microsoft_translator import translate_with_microsoft_api
 from tools.providers.deepl import translate_with_deepl
 from tools.providers.phi import translate_with_phi3_medium
-from tools.errors import ERROR_MAX_TOKENS
+from tools.errors import ERROR_MAX_TOKENS, ERROR_UNSUPPORTED_LANGUAGE
 
 # conda activate bee; source SECRETS.sh; python main.py --system
 SYSTEMS = {
@@ -118,6 +118,8 @@ def _request_system(system_name, request):
                 print(f"System {system_name} returned ERROR_MAX_TOKENS for doc_id {request['doc_id']} with translation granularity {translation_granularity}")
                 attempt_document_level = False
                 continue
+            if answer == ERROR_UNSUPPORTED_LANGUAGE:
+                return None
 
             answer, tokens = answer
 
