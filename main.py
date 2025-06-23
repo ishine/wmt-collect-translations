@@ -1,6 +1,6 @@
 """
-  Title: Machine Translation API command line tool for translating WMT testsets
-  Author: Tom Kocmi
+    Title: Machine Translation API command line tool for translating WMT testsets
+    Author: Tom Kocmi
 """
 
 import os
@@ -27,9 +27,13 @@ def main(args):
 
     answers = collect_answers(blindset, FLAGS.system)
 
-    
     # make dataframe but drop None items in the list
     df = pd.DataFrame([a for a in answers if a is not None])
+
+    print("###"*10)
+    print(f"Collected {len(df)} translations for {FLAGS.system} system")
+    print(f"Missing translations: {len(blindset) - len(df)}")
+
 
     os.makedirs("wmt_translations", exist_ok=True)
     df.to_json(f"wmt_translations/{FLAGS.system}.jsonl", orient='records', lines=True)

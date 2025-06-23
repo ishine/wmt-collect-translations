@@ -168,20 +168,6 @@ def _request_system(system_name, request):
             }
         else:
             print(f"Paragraph alignment failed for {system_name} on doc_id {request['doc_id']} with {translation_granularity}.")
-    
-
-    # counter = 0
-    # while True:
-    #     counter += 1
-    #     if counter > 5:
-    #         time.sleep(1)
-    #         raise Exception("Too many retries")
-    #     try:
-    #         return SYSTEMS[system_name]["call"](prompt=prompt)
-    #     except Exception as e:
-    #         traceback.print_exc()
-    #         print(e)
-    #         continue
 
     return None
 
