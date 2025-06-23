@@ -1,5 +1,6 @@
 import os
 import logging
+from tools.errors import ERROR_MAX_TOKENS
 
 CLIENT = None
 def lazy_get_client():
@@ -29,6 +30,8 @@ def process_with_anthropic(request, model, max_tokens):
         messages=[{"role": "user", "content": request['prompt']}]
     )
 
+    if response.stop_reason == "max_tokens":
+        return ERROR_MAX_TOKENS
     if response.stop_reason != 'end_turn':
         logging.warning(f"Finish reason: {response.stop_reason}; {response.content[0].text}")
         return None

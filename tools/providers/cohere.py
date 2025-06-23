@@ -29,6 +29,8 @@ def process_with_aya_expanse_8B(request):
 
 
 def process_with_cohere(request, model, max_tokens=8192):
+    import cohere
+
     # to avoid overwriting the original request
     request = copy.deepcopy(request)
     co = lazy_get_client()
@@ -38,12 +40,17 @@ def process_with_cohere(request, model, max_tokens=8192):
 			"content": [{"type": "text", "text": request['prompt']}]
 		}]
 
-    response = co.chat(
-        model=model,
-        temperature=0,
-        messages=messages,
-        max_tokens=max_tokens,
-    )
+    try:
+        response = co.chat(
+            model=model,
+            temperature=0,
+            messages=messages,
+            max_tokens=max_tokens,
+        )
+    except cohere.errors.bad_request_error.BadRequestError as err:
+        if 'too many tokens' in err.body['message']:
+            return ERROR_MAX_TOKENS
+        raise err
 
     if response.finish_reason == 'MAX_TOKENS':
         return ERROR_MAX_TOKENS
@@ -51,8 +58,6 @@ def process_with_cohere(request, model, max_tokens=8192):
     if response.finish_reason != "COMPLETE":
         logging.warning(f"Finish reason: {response.finish_reason}")
         return None
-
-    assert response.finish_reason == "COMPLETE", f"Finish reason: {response.finish_reason}"
     
     return response.message.content[0].text, {
         "input_tokens": response.usage.billed_units.input_tokens,
