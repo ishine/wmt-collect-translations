@@ -117,13 +117,20 @@ def _process_line_level(system_name, request):
     answers = []
     tokens = {}
     seg_request = request.copy()
+    highest_temperature = 0.0
     for sentence in request['segment'].split('\n'):
         seg_request['prompt'] = f"{request['prompt_instruction']}\n\n{sentence}"
         seg_request['segment'] = sentence
 
-        response = SYSTEMS[system_name](seg_request)
+        for temperature in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]:
+            response = SYSTEMS[system_name](seg_request, temperature=temperature)
+            if temperature > highest_temperature:
+                highest_temperature = temperature
+            if response != ERROR_MAX_TOKENS:
+                break
+            
         if response is None or response == ERROR_MAX_TOKENS:
-            return response
+            return response, 0.0
 
         translated_sentence, sentence_tokens = response
         translated_sentence = re.sub(r'\n{1,}', ' ', translated_sentence)
@@ -134,13 +141,14 @@ def _process_line_level(system_name, request):
                 if key not in tokens:
                     tokens[key] = 0
                 tokens[key] += value
-    return '\n'.join(answers), tokens
+    return ('\n'.join(answers), tokens), highest_temperature
 
 
 def _process_paragraph_level(system_name, request, translation_granularity='paragraph-level'):
     answers = []
     tokens = {}
     seg_request = request.copy()
+    highest_temperature = 0.0
     for paragraph in request['segment'].split('\n\n'):
         seg_request['prompt'] = f"{request['prompt_instruction']}\n\n{paragraph}"
         seg_request['segment'] = paragraph
@@ -148,8 +156,13 @@ def _process_paragraph_level(system_name, request, translation_granularity='para
         response = SYSTEMS[system_name](seg_request)
         if response == ERROR_MAX_TOKENS:
             # there are few long paragraphs in testsuites, use sentence-level only for those
-            response = _process_line_level(system_name, seg_request)
-            translation_granularity = 'line-level'
+            response, temperature = _process_line_level(system_name, seg_request)
+            if translation_granularity == 'paragraph-level':
+                translation_granularity = f'line-level'
+
+            if temperature > highest_temperature:
+                highest_temperature = temperature
+                translation_granularity = f'line-level-{highest_temperature}'
 
         if response is None or response == ERROR_MAX_TOKENS:
             return response, translation_granularity

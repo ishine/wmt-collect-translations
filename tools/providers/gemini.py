@@ -13,22 +13,22 @@ def lazy_get_client():
         CLIENT = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     return CLIENT
 
-def process_with_gemini_2_5_pro(request):
-    return translate_with_gemini(request, "gemini-2.5-pro", max_tokens=8192)
+def process_with_gemini_2_5_pro(request, temperature=0.0):
+    return translate_with_gemini(request, "gemini-2.5-pro", max_tokens=8192, temperature=temperature)
 
-def process_with_gemma_3_12b(request):
-    return translate_with_gemini(request, "gemma-3-12b-it", max_tokens=8192)
+def process_with_gemma_3_12b(request, temperature=0.0):
+    return translate_with_gemini(request, "gemma-3-12b-it", max_tokens=8192, temperature=temperature)
 
-def process_with_gemma_3_27b(request):
-    return translate_with_gemini(request, "gemma-3-27b-it", max_tokens=8192)
+def process_with_gemma_3_27b(request, temperature=0.0):
+    return translate_with_gemini(request, "gemma-3-27b-it", max_tokens=8192, temperature=temperature)
 
 
-def translate_with_gemini(request, model, max_tokens):
+def translate_with_gemini(request, model, max_tokens, temperature=0.0):
     client = lazy_get_client()
     from google.genai import types
 
     config = types.GenerateContentConfig(
-        temperature=0.0,
+        temperature=temperature,
         max_output_tokens=max_tokens,
         response_mime_type="text/plain",
         safety_settings=[

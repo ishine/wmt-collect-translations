@@ -13,12 +13,12 @@ def lazy_get_client():
     return CLIENT
 
 
-def process_with_openai_gpt4_1(request):  
-    return openai_call(request, "gpt-4.1")
+def process_with_openai_gpt4_1(request, temperature=0.0):  
+    return openai_call(request, "gpt-4.1", temperature=temperature)
 
 
 
-def openai_call(request, model):
+def openai_call(request, model, temperature=0.0):
     client = lazy_get_client()
     import openai
 
@@ -28,7 +28,7 @@ def openai_call(request, model):
             messages=[
                 {"role": "user", "content": request['prompt']}
             ],
-            temperature=0,
+            temperature=temperature,
         )    
     except (openai.BadRequestError, openai.APITimeoutError) as e:
         return None
