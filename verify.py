@@ -66,6 +66,12 @@ def main(args):
     gran = gran.round(1)
     print(gran)
 
+    # for each row, find which columns it has NaN values and print them
+    for system, row in scores.iterrows():
+        missing = row[row.isna()].index.tolist()
+        if missing:
+            print(f"{system} is missing scores for:\n{', '.join(missing)}\n")
+
 
 if __name__ == '__main__':
     app.run(main)
