@@ -28,10 +28,6 @@ def main(args):
     answers = collect_answers(blindset, FLAGS.system)
     df = pd.DataFrame(answers)
 
-    print("###"*10)
-    print(f"Collected {len(df)} translations for {FLAGS.system} system")
-    print(f"Missing translations: {len(blindset) - len(df)}")
-
     os.makedirs("wmt_translations", exist_ok=True)
     df.to_json(f"wmt_translations/{FLAGS.system}.jsonl", orient='records', lines=True, force_ascii=False)
 
@@ -40,14 +36,17 @@ def main(args):
     blindset = pd.read_json("blindset_mist_2025.json")
 
     answers = collect_answers(blindset, FLAGS.system, "mist")
-    df = pd.DataFrame(answers)
-
-    print("###"*10)
-    print(f"Collected {len(df)} translations for {FLAGS.system} system")
-    print(f"Missing translations: {len(blindset) - len(df)}")
+    mistdf = pd.DataFrame(answers)
 
     os.makedirs("wmt_mist", exist_ok=True)
-    df.to_json(f"wmt_mist/{FLAGS.system}.json", orient='records', lines=True, force_ascii=False)
+    mistdf.to_json(f"wmt_mist/{FLAGS.system}.json", orient='records', lines=True, force_ascii=False)
+
+    # print number of None answers
+    mt_num_none = df['translation'].isnull().sum()
+    mist_num_none = mistdf['answer'].isnull().sum()
+    print("###"*10)
+    print(f"Number of None answers in MT: {mt_num_none}")
+    print(f"Number of None answers in MIST: {mist_num_none}")
 
 if __name__ == '__main__':
     app.run(main)
