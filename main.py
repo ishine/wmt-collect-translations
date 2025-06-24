@@ -26,9 +26,7 @@ def main(args):
 
 
     answers = collect_answers(blindset, FLAGS.system)
-
-    # make dataframe but drop None items in the list
-    df = pd.DataFrame([a for a in answers if a is not None])
+    df = pd.DataFrame(answers)
 
     print("###"*10)
     print(f"Collected {len(df)} translations for {FLAGS.system} system")
@@ -42,9 +40,7 @@ def main(args):
     blindset = pd.read_json("blindset_mist_2025.json")
 
     answers = collect_answers(blindset, FLAGS.system, "mist")
-
-    # make dataframe but drop None items in the list
-    df = pd.DataFrame([a for a in answers if a is not None])
+    df = pd.DataFrame(answers)
 
     print("###"*10)
     print(f"Collected {len(df)} translations for {FLAGS.system} system")
