@@ -34,9 +34,24 @@ def main(args):
     print(f"Collected {len(df)} translations for {FLAGS.system} system")
     print(f"Missing translations: {len(blindset) - len(df)}")
 
-
     os.makedirs("wmt_translations", exist_ok=True)
     df.to_json(f"wmt_translations/{FLAGS.system}.jsonl", orient='records', lines=True, force_ascii=False)
+
+
+    assert os.path.exists("blindset_mist_2025.json"), "Download blindset_mist_2025.json file from WMT website"
+    blindset = pd.read_json("blindset_mist_2025.json")
+
+    answers = collect_answers(blindset, FLAGS.system, "mist")
+
+    # make dataframe but drop None items in the list
+    df = pd.DataFrame([a for a in answers if a is not None])
+
+    print("###"*10)
+    print(f"Collected {len(df)} translations for {FLAGS.system} system")
+    print(f"Missing translations: {len(blindset) - len(df)}")
+
+    os.makedirs("wmt_mist", exist_ok=True)
+    df.to_json(f"wmt_mist/{FLAGS.system}.json", orient='records', lines=True, force_ascii=False)
 
 if __name__ == '__main__':
     app.run(main)

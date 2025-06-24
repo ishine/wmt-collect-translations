@@ -205,32 +205,68 @@ def _request_system(system_name, request):
     return None
 
 
-def collect_answers(blindset, system_name):
+def _request_system_directly(system_name, request):
+    answer = SYSTEMS[system_name](request)
+
+    if answer is None or answer == ERROR_MAX_TOKENS:
+        return None
+
+    answer, tokens = answer
+
+    answer = answer.strip()
+    return {
+        'taskid': request['taskid'],
+        'translation': answer,
+        "tokens": tokens
+    }
+    
+
+
+def collect_answers(blindset, system_name, task="general_mt"):
     cache = dc.Cache(f'cache/{system_name}', expire=None, size_limit=int(10e10), cull_limit=0, eviction_policy='none')
 
     answers = []
     for _, row in tqdm(blindset.iterrows(), total=len(blindset), desc=system_name):
-        request = {
-            'doc_id': row['doc_id'],
-            'source_language': row['src_lang'],
-            'target_language': row['tgt_lang'],
-            'segment': row['src_text'],
-            'prompt_instruction': row['prompt_instruction']
-        }
-        # create hash merging all the information in the request
-        hashid = f"{request['doc_id']}_{request['source_language']}_{request['target_language']}_{request['segment']}_{request['prompt_instruction']}"
-        hashid = hashlib.md5(hashid.encode('utf-8')).hexdigest()
+        if task == "general_mt":
+            request = {
+                'doc_id': row['doc_id'],
+                'source_language': row['src_lang'],
+                'target_language': row['tgt_lang'],
+                'segment': row['src_text'],
+                'prompt_instruction': row['prompt_instruction']
+            }
+            # create hash merging all the information in the request
+            hashid = f"{request['doc_id']}_{request['source_language']}_{request['target_language']}_{request['segment']}_{request['prompt_instruction']}"
+            hashid = hashlib.md5(hashid.encode('utf-8')).hexdigest()
 
-        # None represent problem in the translation that was originally skipped
-        if hashid not in cache or cache[hashid] is None:
-            try:
-                cache[hashid] = _request_system(system_name, request)
-            except Exception as e:
-                logging.error(f"Error processing {request['doc_id']} with {system_name}: {e}")
-                logging.error(traceback.format_exc())
-                cache[hashid] = None
+            # None represent problem in the translation that was originally skipped
+            if hashid not in cache or cache[hashid] is None:
+                try:
+                    cache[hashid] = _request_system(system_name, request)
+                except Exception as e:
+                    logging.error(f"Error processing {request['doc_id']} with {system_name}: {e}")
+                    logging.error(traceback.format_exc())
+                    cache[hashid] = None
 
-        answers.append(cache[hashid])
+            answers.append(cache[hashid])
+        elif task == "mist":
+            if system_name in non_prompt_systems:
+                return None
+            
+            # create hash merging all the information in the request
+            hashid = f"{row['taskid']}_{row['prompt']}"
+            hashid = hashlib.md5(hashid.encode('utf-8')).hexdigest()
+
+            # None represent problem in the translation that was originally skipped
+            if hashid not in cache or cache[hashid] is None:
+                try:
+                    cache[hashid] = _request_system_directly(system_name, row)
+                except Exception as e:
+                    logging.error(f"Error processing {row['taskid']} with {system_name}: {e}")
+                    logging.error(traceback.format_exc())
+                    cache[hashid] = None
+
+            answers.append(cache[hashid])
 
         # # if most are None, the system doesn't support the language
         # if sum([1 for t in answers if t is None]) > len(answers) / 2:
