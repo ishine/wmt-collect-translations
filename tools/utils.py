@@ -229,7 +229,7 @@ def _request_system_directly(system_name, request):
     answer = answer.strip()
     return {
         'taskid': request['taskid'],
-        'translation': answer,
+        'answer': answer,
         "tokens": tokens
     }
     
@@ -261,7 +261,14 @@ def collect_answers(blindset, system_name, task="general_mt"):
                     logging.error(traceback.format_exc())
                     cache[hashid] = None
 
-            answers.append(cache[hashid])
+            if cache[hashid] is not None:
+                answers.append(cache[hashid])
+            else:
+                answers.append({
+                    'doc_id': request['doc_id'],
+                    'translation': None,
+                    'translation_granularity': None,
+                })
         elif task == "mist":
             if system_name in non_prompt_systems:
                 return None
@@ -279,6 +286,12 @@ def collect_answers(blindset, system_name, task="general_mt"):
                     logging.error(traceback.format_exc())
                     cache[hashid] = None
 
-            answers.append(cache[hashid])
+            if cache[hashid] is not None:
+                answers.append(cache[hashid])
+            else:
+                answers.append({
+                    'taskid': row['taskid'],
+                    'answer': None,
+                })
 
     return answers
