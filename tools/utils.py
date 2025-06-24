@@ -151,8 +151,8 @@ def _process_paragraph_level(system_name, request, translation_granularity='para
             response = _process_line_level(system_name, seg_request)
             translation_granularity = 'line-level'
 
-        if response is None:
-            return None
+        if response is None or response == ERROR_MAX_TOKENS:
+            return response, translation_granularity
         
         translated_paragraph, paragraph_tokens = response
         translated_paragraph = re.sub(r'\n{2,}', '\n', translated_paragraph)
