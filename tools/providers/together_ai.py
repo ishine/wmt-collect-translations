@@ -12,23 +12,23 @@ def lazy_get_client():
         CLIENT = Together(api_key=os.environ.get("TOGETHER_API_KEY"))
     return CLIENT
 
-def process_with_deepseek_v3(request):
-    return process_with_together_ai(request, "deepseek-ai/DeepSeek-V3", max_tokens=8192)
+def process_with_deepseek_v3(request, temperature=0.0):
+    return process_with_together_ai(request, "deepseek-ai/DeepSeek-V3", max_tokens=8192, temperature=temperature)
 
-def process_qwen3_235b(request):
-    return process_with_together_ai(request, "Qwen/Qwen3-235B-A22B-fp8-tput", max_tokens=8192)
+def process_qwen3_235b(request, temperature=0.0):
+    return process_with_together_ai(request, "Qwen/Qwen3-235B-A22B-fp8-tput", max_tokens=8192, temperature=temperature)
 
-def process_with_llama_4_maverick(request):
-    return process_with_together_ai(request, "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8", max_tokens=8192)
+def process_with_llama_4_maverick(request, temperature=0.0):
+    return process_with_together_ai(request, "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8", max_tokens=8192, temperature=temperature)
 
-def process_with_llama_4_scout(request):
-    return process_with_together_ai(request, "meta-llama/Llama-4-Scout-17B-16E-Instruct", max_tokens=8192)
+def process_with_llama_4_scout(request, temperature=0.0):
+    return process_with_together_ai(request, "meta-llama/Llama-4-Scout-17B-16E-Instruct", max_tokens=8192, temperature=temperature)
 
-def process_with_mistral_7b(request):
-    return process_with_together_ai(request, "mistralai/Mistral-7B-Instruct-v0.3", max_tokens=8192)
+def process_with_mistral_7b(request, temperature=0.0):
+    return process_with_together_ai(request, "mistralai/Mistral-7B-Instruct-v0.3", max_tokens=8192, temperature=temperature)
 
 
-def process_with_together_ai(request, model, max_tokens=8192):
+def process_with_together_ai(request, model, max_tokens=8192, temperature=0.0):
     client = lazy_get_client()
     import together
     
@@ -37,10 +37,10 @@ def process_with_together_ai(request, model, max_tokens=8192):
             model=model,
             messages=[{"role": "user", "content": request['prompt']}],
             max_tokens=max_tokens,
-            temperature=0.0,
+            temperature=temperature,
             chat_template_kwargs={
                 "enable_thinking": False, # turns off QWEN thinking
-                "temperature": 0.0,  
+                "temperature": temperature,
                 "max_tokens": max_tokens
             },
         )
