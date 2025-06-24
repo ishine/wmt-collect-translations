@@ -268,33 +268,4 @@ def collect_answers(blindset, system_name, task="general_mt"):
 
             answers.append(cache[hashid])
 
-        # # if most are None, the system doesn't support the language
-        # if sum([1 for t in answers if t is None]) > len(answers) / 2:
-        #     logging.info(f"Skipping {lp} as it is not supported by {system_name}")
-        #     continue
-
-        # input_token_count = 0
-        # output_token_count = 0
-        # with open(target_filename, "w") as f:
-        #     for line in translated:
-        #         translation = line
-        #         # if line is tupple, then it contains also the token count information
-        #         if isinstance(line, tuple):
-        #             translation = line[0]
-        #             input_token_count += line[1][0]
-        #             output_token_count += line[1][1]
-        #         elif line is None:
-        #             translation = ""
-        #             none_counter += 1
-
-        #         if SYSTEMS[system_name]["prompt"] is not None:
-        #             translation = remove_tripple_quotes(translation)
-                
-        #         f.write(translation + "\n")
-
-        # # save token count information into file
-        # with open(f"{target_filename}.tokens", "w") as f:
-        #     f.write(f"Input tokens: {input_token_count}\n")
-        #     f.write(f"Output tokens: {output_token_count}\n")
-
     return answers
