@@ -18,6 +18,9 @@ def process_with_deepseek_v3(request, temperature=0.0):
 def process_qwen3_235b(request, temperature=0.0):
     return process_with_together_ai(request, "Qwen/Qwen3-235B-A22B-fp8-tput", max_tokens=8192, temperature=temperature)
 
+def process_qwen25_7b(request, temperature=0.0):
+    return process_with_together_ai(request, "Qwen/Qwen2.5-7B-Instruct-Turbo", max_tokens=8192, temperature=temperature)
+
 def process_with_llama_4_maverick(request, temperature=0.0):
     return process_with_together_ai(request, "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8", max_tokens=8192, temperature=temperature)
 
