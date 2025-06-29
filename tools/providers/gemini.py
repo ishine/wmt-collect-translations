@@ -14,7 +14,7 @@ def lazy_get_client():
     return CLIENT
 
 def process_with_gemini_2_5_pro(request, temperature=0.0):
-    return translate_with_gemini(request, "gemini-2.5-pro", max_tokens=32768, temperature=temperature)
+    return translate_with_gemini(request, "gemini-2.5-pro", max_tokens=65536, temperature=temperature)
 
 def process_with_gemma_3_12b(request, temperature=0.0):
     return translate_with_gemini(request, "gemma-3-12b-it", max_tokens=32768, temperature=temperature)
