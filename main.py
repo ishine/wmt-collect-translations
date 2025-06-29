@@ -36,17 +36,18 @@ def main(args):
     blindset = pd.read_json("blindset_mist_2025.json")
 
     answers = collect_answers(blindset, FLAGS.system, "mist")
-    mistdf = pd.DataFrame(answers)
+    if answers is not None:
+        mistdf = pd.DataFrame(answers)
 
-    os.makedirs("wmt_mist", exist_ok=True)
-    mistdf.to_json(f"wmt_mist/{FLAGS.system}.json", orient='records', lines=True, force_ascii=False)
+        os.makedirs("wmt_mist", exist_ok=True)
+        mistdf.to_json(f"wmt_mist/{FLAGS.system}.json", orient='records', force_ascii=False)
 
-    # print number of None answers
-    mt_num_none = df['translation'].isnull().sum()
-    mist_num_none = mistdf['answer'].isnull().sum()
-    print("###"*10)
+        # print number of None answers
+        mist_num_none = mistdf['answer'].isnull().sum()
+        print(f"Number of None answers in MIST: {mist_num_none}")
+
+    mt_num_none = df['hypothesis'].isnull().sum()
     print(f"Number of None answers in MT: {mt_num_none}")
-    print(f"Number of None answers in MIST: {mist_num_none}")
 
 if __name__ == '__main__':
     app.run(main)
