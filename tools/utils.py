@@ -200,7 +200,7 @@ def _request_system(system_name, request):
             attempt_document_level = False
             continue
         if answer == ERROR_UNSUPPORTED_LANGUAGE:
-            return None
+            raise ValueError(ERROR_UNSUPPORTED_LANGUAGE)
 
         answer, tokens = answer
 
@@ -234,13 +234,17 @@ def _request_system_directly(system_name, request):
     }
     
 
-
 def collect_answers(blindset, system_name, task="general_mt"):
     cache = dc.Cache(f'cache/{system_name}', expire=None, size_limit=int(10e10), cull_limit=0, eviction_policy='none')
 
     answers = []
+    unsupported_languages = []
     for _, row in tqdm(blindset.iterrows(), total=len(blindset), desc=system_name):
         if task == "general_mt":
+            # completely skip unsupported languages
+            if (row['src_lang'], row['tgt_lang']) in unsupported_languages:
+                continue
+
             request = {
                 'doc_id': row['doc_id'],
                 'source_language': row['src_lang'],
@@ -257,6 +261,9 @@ def collect_answers(blindset, system_name, task="general_mt"):
                 try:
                     cache[hashid] = _request_system(system_name, request)
                 except Exception as e:
+                    if str(e) == ERROR_UNSUPPORTED_LANGUAGE:
+                        unsupported_languages.append((row['src_lang'], row['tgt_lang']))
+                        continue
                     logging.error(f"Error processing {request['doc_id']} with {system_name}: {e}")
                     logging.error(traceback.format_exc())
                     cache[hashid] = None
@@ -266,9 +273,14 @@ def collect_answers(blindset, system_name, task="general_mt"):
             else:
                 answers.append({
                     'doc_id': request['doc_id'],
-                    'translation': None,
+                    'translation': "NO TRANSLATION", # if everything fails, there is nothing we can do
                     'translation_granularity': None,
                 })
+            # mandatory fields for submission to OCELoT
+            answers[-1]['dataset_id'] = "wmttest2025"
+            answers[-1]['tgt_lang'] = row['tgt_lang']
+            answers[-1]['hypothesis'] = answers[-1].pop('translation')
+
         elif task == "mist":
             if system_name in non_prompt_systems:
                 return None
@@ -291,7 +303,7 @@ def collect_answers(blindset, system_name, task="general_mt"):
             else:
                 answers.append({
                     'taskid': row['taskid'],
-                    'answer': None,
+                    'answer': "FAILED",
                 })
 
     return answers

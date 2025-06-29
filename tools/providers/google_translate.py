@@ -9,12 +9,13 @@ def lazy_get_client():
     
     if CLIENT is None:
         from google.cloud import translate_v2 as translate
-        assert "OPENAI_API_KEY" in os.environ, "Please set the OPENAI_API_KEY environment variable"
+        assert "GOOGLE_API_KEY" in os.environ, "Please set the GOOGLE_API_KEY environment variable"
         CLIENT = translate.Client()
     
         SUPPORTED_LANGUAGES = pd.DataFrame(CLIENT.get_languages())
 
     return CLIENT
+
 
 def get_supported_languages(lang):
     lazy_get_client()
@@ -30,8 +31,8 @@ def translate_with_google_api(request):
     goog_translate_client = lazy_get_client()
 
     target_language = get_supported_languages(request['target_language'])
-    if target_language is None:
-        return None
+    if target_language == ERROR_UNSUPPORTED_LANGUAGE:
+        return ERROR_UNSUPPORTED_LANGUAGE
 
     result = goog_translate_client.translate(
                     request['segment'],

@@ -25,6 +25,7 @@ def main(args):
     
     granularity = {}
     for file in tqdm(glob.glob('wmt_translations/*.jsonl'), "Verifying systems", position=0):
+        print(f"Processing {file}...")
         system = os.path.basename(file).replace(".jsonl", "")
         df = pd.read_json(file, lines=True)
         df['lp'] = df['doc_id'].apply(lambda x: x.split("_#_")[0])
@@ -33,14 +34,14 @@ def main(args):
 
 
         # add a column ref into df with reference translations by aligning on doc_id column
-        df = df.merge(ref[['doc_id', 'translation']], on='doc_id', how='left', suffixes=('', '_ref'))
+        df = df.merge(ref[['doc_id', 'hypothesis']], on='doc_id', how='left', suffixes=('', '_ref'))
 
         for lp in df['lp'].unique():
             subdf = df[df['lp'] == lp]
 
             lensubdf = len(subdf)
             # drop na in translation and translation_ref
-            subdf = subdf.dropna(subset=['translation', 'translation_ref'])
+            subdf = subdf.dropna(subset=['hypothesis', 'hypothesis_ref'])
             if len(subdf) != lensubdf:
                 print(f"Warning: {lensubdf - len(subdf)} translations missing for {lp} in {system}")
                 continue
@@ -48,7 +49,7 @@ def main(args):
             if lp not in sys_scores:
                 sys_scores[lp] = {}
 
-            score = sacrebleu.corpus_bleu(subdf['translation'].to_list(), [subdf['translation_ref'].to_list()]).score 
+            score = sacrebleu.corpus_bleu(subdf['hypothesis'].to_list(), [subdf['hypothesis_ref'].to_list()]).score 
 
             sys_scores[lp][system] = score
         
