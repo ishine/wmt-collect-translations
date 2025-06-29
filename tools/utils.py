@@ -12,9 +12,9 @@ from tqdm import tqdm
 from collections import defaultdict
 
 from tools.providers.cohere import process_with_command_A, process_with_command_R7B, process_with_aya_expanse_32B, process_with_aya_expanse_8B
-from tools.providers.together_ai import process_with_deepseek_v3, process_qwen3_235b, process_with_llama_4_maverick, process_with_llama_4_scout, process_with_mistral_7b
+from tools.providers.together_ai import process_with_deepseek_v3, process_qwen3_235b, process_with_llama_4_maverick, process_with_llama_4_scout, process_with_mistral_7b, process_qwen25_7b
 from tools.providers.openai import process_with_openai_gpt4_1
-from tools.providers.anthropic import process_with_claude_3_7, process_with_claude_4
+from tools.providers.anthropic import process_with_claude_4
 from tools.providers.google_translate import translate_with_google_api
 from tools.providers.yandex_translate import translate_with_yandex
 from tools.providers.mistral import process_with_mistral_medium, process_with_magistral_medium
@@ -32,6 +32,7 @@ SYSTEMS = {
     'AyaExpanse-8B': process_with_aya_expanse_8B,
     'DeepSeek-V3': process_with_deepseek_v3,
     'Qwen3-235B': process_qwen3_235b,
+    'Qwen2.5-7B': process_qwen25_7b,
     'Llama-4-Maverick': process_with_llama_4_maverick,
     'Llama-4-Scout': process_with_llama_4_scout,
     'Mistral-7B': process_with_mistral_7b,
