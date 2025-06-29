@@ -18,13 +18,6 @@ def main(args):
     assert os.path.exists("genmt_blindset_wmt25.jsonl"), "Download genmt_blindset_wmt25.jsonl file from WMT website"
     blindset = pd.read_json("genmt_blindset_wmt25.jsonl", lines=True)
 
-    # print("DEBUG: skipping testsuites")
-    # blindset = blindset[blindset['collection_id']=='general']
-
-    # print("DEBUG: skipping non Czech")
-    # blindset = blindset[blindset['tgt_lang']=='cs_CZ']
-
-
     answers = collect_answers(blindset, FLAGS.system)
     df = pd.DataFrame(answers)
 
@@ -43,11 +36,11 @@ def main(args):
         mistdf.to_json(f"wmt_mist/{FLAGS.system}.json", orient='records', force_ascii=False)
 
         # print number of None answers
-        mist_num_none = mistdf['answer'].isnull().sum()
+        mist_num_none = mistdf[mistdf['answer'] == "FAILED"]['answer'].count()
         print(f"Number of None answers in MIST: {mist_num_none}")
 
-    mt_num_none = df['hypothesis'].isnull().sum()
-    print(f"Number of None answers in MT: {mt_num_none}")
+    mt_num_none = df[df['hypothesis'] == "NO TRANSLATION"]['hypothesis'].count()
+    print(f"Number of untranslated answers in MT: {mt_num_none}")
 
 if __name__ == '__main__':
     app.run(main)
