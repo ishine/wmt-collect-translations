@@ -14,11 +14,11 @@ def lazy_get_client():
 
 
 def process_with_claude_3_7(request, temperature=0.0):
-    return process_with_anthropic(request, "claude-3-7-sonnet-20250219", max_tokens=8192, temperature=temperature)
+    return process_with_anthropic(request, "claude-3-7-sonnet-20250219", max_tokens=16384, temperature=temperature)
 
 
 def process_with_claude_4(request, temperature=0.0):
-    return process_with_anthropic(request, "claude-sonnet-4-20250514", max_tokens=8192, temperature=temperature)
+    return process_with_anthropic(request, "claude-sonnet-4-20250514", max_tokens=16384, temperature=temperature)
 
 def process_with_anthropic(request, model, max_tokens, temperature=0.0):
     client = lazy_get_client()
