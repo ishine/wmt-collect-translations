@@ -47,9 +47,12 @@ def process_with_cohere(request, model, max_tokens=8192, temperature=0.0):
             messages=messages,
             max_tokens=max_tokens,
         )
-    except cohere.errors.bad_request_error.BadRequestError as err:
+    except (cohere.errors.bad_request_error.BadRequestError, cohere.errors.unprocessable_entity_error.UnprocessableEntityError) as err:
         if 'too many tokens' in err.body['message']:
             return ERROR_MAX_TOKENS
+        if "No valid response generated" in err.body['message']:
+            logging.warning(f"No valid response generated")
+            return None
         raise err
 
     if response.finish_reason == 'MAX_TOKENS':
