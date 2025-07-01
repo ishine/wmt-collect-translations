@@ -167,7 +167,7 @@ def main(args):
             "genmt_blindset_wmt25.jsonl"
         ), "Download genmt_blindset_wmt25.jsonl file from WMT website"
         blindset = pd.read_json("genmt_blindset_wmt25.jsonl", lines=True)
-
+        # TODO(sweta20): add postprocessing
         answers = collect_answers_batch_gemini(blindset, FLAGS.system)
         if answers is not None:
             os.makedirs("wmt_translations", exist_ok=True)
