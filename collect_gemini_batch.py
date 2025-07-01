@@ -94,13 +94,13 @@ def create_requests_and_upload(blindset, system_name, task):
     # Upload the file to the File API
     logging.info(f"Created {len(requests)} requests")
     logging.info(f"First request: {requests[0]}")
-    with open(f"batch-requests-{task}.json", "w") as f:
+    with open(f"data/batch-requests-{task}.json", "w") as f:
         for req in requests:
             f.write(json.dumps(req) + "\n")
 
     logging.info(f"Uploading to file")
     uploaded_file = client.files.upload(
-        file=f"batch-requests-{task}.json",
+        file=f"data/batch-requests-{task}.json",
         config=types.UploadFileConfig(display_name="batch-requests-{task}"),
     )
     logging.info(f"Uploaded to file: {uploaded_file.name}")
@@ -158,34 +158,43 @@ def collect_answers_batch_gemini(blindset, system_name, task="general_mt"):
         logging.error(f"Error: {batch_job.error}")
 
     answers = file_content.decode("utf-8")
-    return answers
+    data_list = []
+    for line in answers.strip().split("\n"):
+        if line.strip():  # Ensure line is not empty
+            try:
+                data_list.append(json.loads(line))
+            except json.JSONDecodeError as e:
+                print(f"Skipping malformed line: {line} - Error: {e}")
+    return data_list
 
 
 def main(args):
     if FLAGS.task == "wmt_translations":
         assert os.path.exists(
-            "genmt_blindset_wmt25.jsonl"
+            "data/genmt_blindset_wmt25.jsonl"
         ), "Download genmt_blindset_wmt25.jsonl file from WMT website"
-        blindset = pd.read_json("genmt_blindset_wmt25.jsonl", lines=True)
+        blindset = pd.read_json("data/genmt_blindset_wmt25.jsonl", lines=True)
         # TODO(sweta20): add postprocessing
         answers = collect_answers_batch_gemini(blindset, FLAGS.system)
         if answers is not None:
             os.makedirs("wmt_translations", exist_ok=True)
             with open(f"wmt_translations/{FLAGS.system}.jsonl", "w") as f:
-                for answer in answers:
-                    f.write(answer + "\n")
+                for response in answers:
+                    json_line = json.dumps(response, ensure_ascii=False)
+                    f.write(json_line + "\n")
     elif FLAGS.task == "wmt_mist":
         assert os.path.exists(
-            "blindset_mist_2025.json"
+            "data/blindset_mist_2025.json"
         ), "Download blindset_mist_2025.json file from WMT website"
-        blindset = pd.read_json("blindset_mist_2025.json")
+        blindset = pd.read_json("data/blindset_mist_2025.json")
         logging.info(f"Read blindset with {len(blindset)} lines")
         answers = collect_answers_batch_gemini(blindset, FLAGS.system, "mist")
         if answers is not None:
             os.makedirs("wmt_mist", exist_ok=True)
             with open(f"wmt_mist/{FLAGS.system}.jsonl", "w") as f:
-                for answer in answers:
-                    f.write(answer + "\n")
+                for response in answers:
+                    json_line = json.dumps(response, ensure_ascii=False)
+                    f.write(json_line + "\n")
     else:
         print(f"Task not found: {FLAGS.task}")
 
