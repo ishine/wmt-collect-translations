@@ -1,3 +1,8 @@
+"""
+Title: Script to run and collect Gemini Translations in batch mode
+Author: Sweta Agrawal
+"""
+
 import tqdm
 import hashlib
 import json
