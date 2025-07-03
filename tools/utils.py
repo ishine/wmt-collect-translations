@@ -272,9 +272,10 @@ def collect_answers(blindset, system_name, task="general_mt"):
             if cache[hashid] is not None:
                 answers.append(cache[hashid])
             else:
+                paragraphs = len(request['segment'].split('\n\n'))
                 answers.append({
                     'doc_id': request['doc_id'],
-                    'translation': "NO TRANSLATION", # if everything fails, there is nothing we can do
+                    'translation': '\n\n'.join(["FAILED"] * paragraphs), # if everything fails, there is nothing we can do
                     'translation_granularity': None,
                 })
             # mandatory fields for submission to OCELoT
