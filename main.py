@@ -39,7 +39,7 @@ def main(args):
         mist_num_none = mistdf[mistdf['answer'] == "FAILED"]['answer'].count()
         print(f"Number of None answers in MIST: {mist_num_none}")
 
-    mt_num_none = df[df['hypothesis'] == "NO TRANSLATION"]['hypothesis'].count()
+    mt_num_none = df[df['hypothesis'].str.contains("FAILED", na=False)]['hypothesis'].count()
     print(f"Number of untranslated answers in MT: {mt_num_none}")
 
 if __name__ == '__main__':
