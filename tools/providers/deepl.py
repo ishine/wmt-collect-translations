@@ -1,4 +1,5 @@
 import os
+from tools.errors import ERROR_UNSUPPORTED_LANGUAGE
 
 
 CLIENT = None
@@ -23,7 +24,7 @@ def translate_with_deepl(request):
 
     target_language = request['target_language'].split('_')[0]
     if target_language not in supported_languages_deepl:
-        return None
+        return ERROR_UNSUPPORTED_LANGUAGE
 
     result = client.translate_text(
                 request['segment'],
