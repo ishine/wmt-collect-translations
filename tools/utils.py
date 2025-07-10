@@ -12,7 +12,7 @@ from tqdm import tqdm
 from collections import defaultdict
 
 from tools.providers.cohere import process_with_command_A, process_with_command_R7B, process_with_aya_expanse_32B, process_with_aya_expanse_8B
-from tools.providers.together_ai import process_with_deepseek_v3, process_qwen3_235b, process_with_llama_4_maverick, process_with_llama_4_scout, process_with_mistral_7b, process_qwen25_7b
+from tools.providers.together_ai import process_with_deepseek_v3, process_qwen3_235b, process_with_llama_4_maverick, process_with_llama_4_scout, process_with_mistral_7b, process_qwen25_7b, process_with_llama_3_1_8b
 from tools.providers.openai import process_with_openai_gpt4_1
 from tools.providers.anthropic import process_with_claude_4
 from tools.providers.google_translate import translate_with_google_api
@@ -35,6 +35,7 @@ SYSTEMS = {
     'Qwen2.5-7B': process_qwen25_7b,
     'Llama-4-Maverick': process_with_llama_4_maverick,
     'Llama-4-Scout': process_with_llama_4_scout,
+    'Llama-3.1-8B': process_with_llama_3_1_8b,
     'Mistral-7B': process_with_mistral_7b,
     'GPT-4.1': process_with_openai_gpt4_1,
     'Claude-4': process_with_claude_4,
@@ -282,7 +283,6 @@ def collect_answers(blindset, system_name, task="general_mt"):
             answers[-1]['dataset_id'] = "wmttest2025"
             answers[-1]['tgt_lang'] = row['tgt_lang']
             answers[-1]['hypothesis'] = answers[-1].pop('translation')
-
         elif task == "mist":
             if system_name in non_prompt_systems:
                 return None
