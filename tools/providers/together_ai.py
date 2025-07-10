@@ -27,6 +27,9 @@ def process_with_llama_4_maverick(request, temperature=0.0):
 def process_with_llama_4_scout(request, temperature=0.0):
     return process_with_together_ai(request, "meta-llama/Llama-4-Scout-17B-16E-Instruct", max_tokens=8192, temperature=temperature)
 
+def process_with_llama_3_1_8b(request, temperature=0.0):
+    return process_with_together_ai(request, "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", max_tokens=8192, temperature=temperature)
+
 def process_with_mistral_7b(request, temperature=0.0):
     return process_with_together_ai(request, "mistralai/Mistral-7B-Instruct-v0.3", max_tokens=8192, temperature=temperature)
 
