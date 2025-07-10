@@ -1,5 +1,6 @@
 import os
 import logging
+from tools.errors import ERROR_MAX_TOKENS
 
 CLIENT = None
 def lazy_get_client():
@@ -14,10 +15,10 @@ def lazy_get_client():
     return CLIENT
 
 def process_with_mistral_medium(request, temperature=0.0):
-    return process_with_mistral(request, "mistral-medium-latest", max_tokens=None, temperature=temperature)
+    return process_with_mistral(request, "mistral-medium-latest", max_tokens=32768, temperature=temperature)
 
 def process_with_magistral_medium(request, temperature=0.0):
-    return process_with_mistral(request, "magistral-medium-latest", max_tokens=None, temperature=temperature)
+    return process_with_mistral(request, "magistral-medium-latest", max_tokens=32768, temperature=temperature)
 
 
 # setting max_tokens to None uses maximum allowed tokens of given model
@@ -38,8 +39,7 @@ def process_with_mistral(request, model, max_tokens=None, temperature=0.0):
         return None
 
     if response.choices[0].finish_reason != "stop":
-        logging.warning(f"Finish reason: {response.choices[0].finish_reason}; {response.choices[0].message.content}")
-        return None
+        return ERROR_MAX_TOKENS
 
     assert response.choices[0].finish_reason == "stop", f"Finish reason: {response.choices[0].finish_reason}"
 
