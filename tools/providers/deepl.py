@@ -1,5 +1,5 @@
 import os
-from tools.errors import ERROR_UNSUPPORTED_LANGUAGE
+from tools.errors import ERROR_UNSUPPORTED_LANGUAGE, FINISH_STOP
 
 
 CLIENT = None
@@ -32,4 +32,4 @@ def translate_with_deepl(request):
                 target_lang=target_language,
             )
     
-    return result.text, None
+    return result.text, {"finish_reason": FINISH_STOP}

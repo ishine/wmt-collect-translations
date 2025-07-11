@@ -1,6 +1,6 @@
 import os
 import logging
-from tools.errors import ERROR_MAX_TOKENS
+from tools.errors import FINISH_LENGTH, FINISH_STOP
 
 CLIENT = None
 def lazy_get_client():
@@ -55,8 +55,10 @@ def process_with_together_ai(request, model, max_tokens=8192, temperature=0.0):
         return None
 
     if response.choices[0].finish_reason == "length":
-        return ERROR_MAX_TOKENS
-    if response.choices[0].finish_reason != "stop":
+        finish_reason = FINISH_LENGTH
+    elif response.choices[0].finish_reason == "stop":
+        finish_reason = FINISH_STOP
+    else:
         logging.warning(f"Finish reason: {response.choices[0].finish_reason}; {response.choices[0].message.content}")
         return None
 
@@ -64,5 +66,5 @@ def process_with_together_ai(request, model, max_tokens=8192, temperature=0.0):
         "input_tokens": response.usage.prompt_tokens,
         "output_tokens": response.usage.completion_tokens,
         "thinking_tokens": 0,  # Together AI does not provide thinking tokens
+        "finish_reason": finish_reason
     }
-

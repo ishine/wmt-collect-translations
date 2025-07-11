@@ -3,6 +3,7 @@ import urllib.request
 import json
 import os
 import ssl
+from tools.errors import FINISH_STOP
 
 
 def allowSelfSignedHttps(allowed):
@@ -15,8 +16,6 @@ def lazy_get_client():
     global CLIENT
     allowSelfSignedHttps(True) # this line is needed if you use self-signed certificate in your scoring service.
     return CLIENT
-
-
 
 
 def translate_with_phi3_medium(prompt):
@@ -56,5 +55,5 @@ def translate_with_phi3_medium(prompt):
 
     return response['choices'][0]['message']['content'], {"input_tokens": response['usage']['prompt_tokens'],
                                                            "output_tokens": response['usage']['completion_tokens'],
-                                                           "thinking_tokens": 0}
-
+                                                           "thinking_tokens": 0,
+                                                           "finish_reason": FINISH_STOP}

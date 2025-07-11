@@ -1,6 +1,6 @@
 import os
 import logging
-from tools.errors import ERROR_MAX_TOKENS
+from tools.errors import FINISH_LENGTH, FINISH_STOP
 
 CLIENT = None
 def lazy_get_client():
@@ -38,14 +38,17 @@ def process_with_mistral(request, model, max_tokens=None, temperature=0.0):
         logging.error(f"Error: {e}")
         return None
 
-    if response.choices[0].finish_reason != "stop":
-        return ERROR_MAX_TOKENS
-
-    assert response.choices[0].finish_reason == "stop", f"Finish reason: {response.choices[0].finish_reason}"
+    if response.choices[0].finish_reason == "stop":
+        finish_reason = FINISH_STOP
+    elif response.choices[0].finish_reason == "length":
+        finish_reason = FINISH_LENGTH
+    else:
+       return None
 
     return response.choices[0].message.content, {
         "input_tokens": response.usage.prompt_tokens,
         "output_tokens": response.usage.completion_tokens,
-        "thinking_tokens": 0
+        "thinking_tokens": 0,
+        "finish_reason": finish_reason
     }
 

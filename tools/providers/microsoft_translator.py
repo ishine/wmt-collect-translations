@@ -4,6 +4,7 @@ import ipdb
 import requests
 from tqdm import tqdm
 from retrying import retry
+from tools.errors import FINISH_STOP
 
 
 def get_headers(MTAPI_SUBSCRIPTION_KEY):
@@ -49,4 +50,4 @@ def bulk_translate_with_microsoft(segments, source_pt1_iso, target_pt1_iso):
             ipdb.set_trace()
         translations.append(translation[0])
         
-    return translations
+    return translations, {"finish_reason": FINISH_STOP}

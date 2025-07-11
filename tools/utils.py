@@ -22,7 +22,7 @@ from tools.providers.gemini import process_with_gemini_2_5_pro, process_with_gem
 from tools.providers.microsoft_translator import translate_with_microsoft_api
 from tools.providers.deepl import translate_with_deepl
 from tools.providers.phi import translate_with_phi3_medium
-from tools.errors import ERROR_MAX_TOKENS, ERROR_UNSUPPORTED_LANGUAGE
+from tools.errors import FINISH_LENGTH, FINISH_STOP, ERROR_UNSUPPORTED_LANGUAGE
 
 
 SYSTEMS = {
@@ -100,7 +100,7 @@ def _process_document_level(system_name, request, translation_granularity):
 
     answer = SYSTEMS[system_name](request)
 
-    if answer is None or answer in [ERROR_MAX_TOKENS, ERROR_UNSUPPORTED_LANGUAGE]:
+    if answer is None or answer == ERROR_UNSUPPORTED_LANGUAGE:
         return answer
 
     answer, tokens = answer
@@ -115,6 +115,7 @@ def _process_document_level(system_name, request, translation_granularity):
     return answer, tokens
 
 
+# TODO: in WMT26, remove line-level granularity
 def _process_line_level(system_name, request):
     answers = []
     tokens = {}
@@ -125,24 +126,26 @@ def _process_line_level(system_name, request):
         seg_request['segment'] = sentence
 
         for temperature in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]:
-            response = SYSTEMS[system_name](seg_request, temperature=temperature)
+            answer = SYSTEMS[system_name](seg_request, temperature=temperature)
             if temperature > highest_temperature:
                 highest_temperature = temperature
-            if response != ERROR_MAX_TOKENS:
-                break
             
-        if response is None or response == ERROR_MAX_TOKENS:
-            return response, 0.0
+        if answer is None:
+            return answer, 0.0
 
-        translated_sentence, sentence_tokens = response
+        translated_sentence, sentence_tokens = answer
         translated_sentence = re.sub(r'\n{1,}', ' ', translated_sentence)
         answers.append(translated_sentence.strip('\n'))
         # add tokens to the dictionary
         if sentence_tokens is not None:
             for key, value in sentence_tokens.items():
+                if key == "finish_reason":
+                    continue
                 if key not in tokens:
                     tokens[key] = 0
                 tokens[key] += value
+    
+    tokens['finish_reason'] = FINISH_STOP
     return ('\n'.join(answers), tokens), highest_temperature
 
 
@@ -155,10 +158,10 @@ def _process_paragraph_level(system_name, request, translation_granularity='para
         seg_request['prompt'] = f"{request['prompt_instruction']}\n\n{paragraph}"
         seg_request['segment'] = paragraph
 
-        response = SYSTEMS[system_name](seg_request)
-        if response == ERROR_MAX_TOKENS:
+        answer = SYSTEMS[system_name](seg_request)
+        if answer[1]['finish_reason'] == FINISH_LENGTH:
             # there are few long paragraphs in testsuites, use sentence-level only for those
-            response, temperature = _process_line_level(system_name, seg_request)
+            answer, temperature = _process_line_level(system_name, seg_request)
             if translation_granularity == 'paragraph-level':
                 translation_granularity = f'line-level'
 
@@ -166,10 +169,10 @@ def _process_paragraph_level(system_name, request, translation_granularity='para
                 highest_temperature = temperature
                 translation_granularity = f'line-level-{highest_temperature}'
 
-        if response is None or response == ERROR_MAX_TOKENS:
-            return response, translation_granularity
+        if answer is None or answer[1]['finish_reason'] == FINISH_LENGTH:
+            return answer, translation_granularity
         
-        translated_paragraph, paragraph_tokens = response
+        translated_paragraph, paragraph_tokens = answer
         translated_paragraph = re.sub(r'\n{2,}', '\n', translated_paragraph)
         answers.append(translated_paragraph.strip())
         # add tokens to the dictionary
@@ -183,6 +186,7 @@ def _process_paragraph_level(system_name, request, translation_granularity='para
 
 def _request_system(system_name, request):
     attempt_document_level = True
+    # it was already failing on max_tokens before the last try
     for translation_granularity in ['document-level', 'document-level-wrapped', 'document-level-html', 'paragraph-level']:
         if not attempt_document_level and translation_granularity != 'paragraph-level':
             continue
@@ -198,7 +202,7 @@ def _request_system(system_name, request):
         if answer is None:
             print(f"System {system_name} returned None for doc_id {request['doc_id']} with translation granularity {translation_granularity}")
             continue
-        if answer == ERROR_MAX_TOKENS:
+        if answer[1]['finish_reason'] == FINISH_LENGTH:
             attempt_document_level = False
             continue
         if answer == ERROR_UNSUPPORTED_LANGUAGE:
@@ -223,7 +227,7 @@ def _request_system(system_name, request):
 def _request_system_directly(system_name, request):
     answer = SYSTEMS[system_name](request)
 
-    if answer is None or answer == ERROR_MAX_TOKENS:
+    if answer is None:
         return None
 
     answer, tokens = answer

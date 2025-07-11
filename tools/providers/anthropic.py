@@ -1,6 +1,6 @@
 import os
 import logging
-from tools.errors import ERROR_MAX_TOKENS
+from tools.errors import FINISH_STOP, FINISH_LENGTH
 
 CLIENT = None
 def lazy_get_client():
@@ -31,16 +31,18 @@ def process_with_anthropic(request, model, max_tokens, temperature=0.0):
     )
 
     if response.stop_reason == "max_tokens":
-        return ERROR_MAX_TOKENS
-    if response.stop_reason != 'end_turn':
+        finish_reason = FINISH_LENGTH
+    elif response.stop_reason == "end_turn":
+        finish_reason = FINISH_STOP
+    else:
         logging.warning(f"Finish reason: {response.stop_reason}; {response.content[0].text}")
         return None
 
-    assert response.stop_reason == 'end_turn', f"Finish reason: {response.stop_reason}"
 
     return response.content[0].text, {
         "input_tokens": response.usage.input_tokens,
         "output_tokens": response.usage.output_tokens,
-        "thinking_tokens": 0
+        "thinking_tokens": 0,
+        "finish_reason": finish_reason
     }
 

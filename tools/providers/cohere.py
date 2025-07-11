@@ -1,7 +1,7 @@
 import os
 import copy
 import logging
-from tools.errors import ERROR_MAX_TOKENS
+from tools.errors import FINISH_STOP, FINISH_LENGTH
 
 
 CLIENT = None
@@ -49,21 +49,22 @@ def process_with_cohere(request, model, max_tokens=8192, temperature=0.0):
         )
     except (cohere.errors.bad_request_error.BadRequestError, cohere.errors.unprocessable_entity_error.UnprocessableEntityError) as err:
         if 'too many tokens' in err.body['message']:
-            return ERROR_MAX_TOKENS
+            return None
         if "No valid response generated" in err.body['message']:
-            logging.warning(f"No valid response generated")
             return None
         raise err
-
+    
     if response.finish_reason == 'MAX_TOKENS':
-        return ERROR_MAX_TOKENS
-
-    if response.finish_reason != "COMPLETE":
+        finish_reason = FINISH_LENGTH
+    elif response.finish_reason == 'COMPLETE':
+        finish_reason = FINISH_STOP
+    else:
         logging.warning(f"Finish reason: {response.finish_reason}")
         return None
     
     return response.message.content[0].text, {
         "input_tokens": response.usage.billed_units.input_tokens,
         "output_tokens": response.usage.billed_units.output_tokens,
-        "thinking_tokens": 0
+        "thinking_tokens": 0,
+        "finish_reason": finish_reason
     }
