@@ -29,27 +29,11 @@ export PHI_API_KEY=                     # API key for Phi model
 
 ## Download WMT testsets
 
-Download latest blindset and rename to `wmt_testset`:
-```
-wget https://www2.statmt.org/wmt24/WMT24_GeneralMT.zip
-unzip WMT24_GeneralMT.zip
-mv WMT24_GeneralMT wmt_testset
-```
-
-Extract XML into txt, extract also without testsuites:
-
-```
-for file in `ls wmt_testset/*.xml --color=no`; do cat $file | wmt-unwrap -o $file.full; done
-
-for file in `ls wmt_testset/*.xml --color=no`; do cat $file | wmt-unwrap -o $file.no-testsuites --no-testsuites; done
-```
-
+Download latest blindset from the webpage
 
 ## Running translations
 
 ```
 python main.py --system='SYSTEM'
 ```
-
-Where SYSTEM is any of `MicrosoftTranslator|GoogleTranslate|DeepL|YandexTranslate|GPT-4|Llama3-70B|CommandR-plus|Aya23|Mistral-Large|GPT-4o|Claude-3.5|Gemini-1.5-Pro|Phi-3-Medium`. It should be easily extended to other models.
 
