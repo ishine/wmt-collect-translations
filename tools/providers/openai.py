@@ -1,4 +1,5 @@
 import os
+from tools.errors import FINISH_STOP, FINISH_LENGTH
 
 
 CLIENT = None
@@ -14,11 +15,10 @@ def lazy_get_client():
 
 
 def process_with_openai_gpt4_1(request, temperature=0.0):  
-    return openai_call(request, "gpt-4.1", temperature=temperature)
+    return openai_call(request, "gpt-4.1", temperature=temperature, max_tokens=32768)
 
 
-
-def openai_call(request, model, temperature=0.0):
+def openai_call(request, model, temperature=0.0, max_tokens=None):
     client = lazy_get_client()
     import openai
 
@@ -28,6 +28,7 @@ def openai_call(request, model, temperature=0.0):
             messages=[
                 {"role": "user", "content": request['prompt']}
             ],
+            max_tokens=max_tokens,
             temperature=temperature,
         )    
     except (openai.BadRequestError, openai.APITimeoutError) as e:
@@ -38,14 +39,17 @@ def openai_call(request, model, temperature=0.0):
         print(e)
         raise e
 
-    if response.choices[0].finish_reason != "stop":
+    if response.choices[0].finish_reason == "length":
+        finish_reason = FINISH_LENGTH
+    elif response.choices[0].finish_reason == "stop":
+        finish_reason = FINISH_STOP
+    else:
         return None
-
-    assert response.choices[0].finish_reason == "stop", f"Finish reason: {response.choices[0].finish_reason}"
 
     return response.choices[0].message.content, {
         "input_tokens": response.usage.prompt_tokens,
         "output_tokens": response.usage.completion_tokens,
-        "thinking_tokens": 0
+        "thinking_tokens": 0,
+        "finish_reason": finish_reason
     }
 

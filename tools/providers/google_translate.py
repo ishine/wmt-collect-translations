@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from tools.errors import ERROR_UNSUPPORTED_LANGUAGE
+from tools.errors import ERROR_UNSUPPORTED_LANGUAGE, FINISH_STOP
 
 CLIENT = None
 SUPPORTED_LANGUAGES = None
@@ -40,4 +40,4 @@ def translate_with_google_api(request):
                     target_language=target_language,
                 )
 
-    return result.get('translatedText'), None
+    return result.get('translatedText'), {"finish_reason": FINISH_STOP}

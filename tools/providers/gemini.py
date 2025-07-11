@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+from tools.errors import FINISH_STOP, FINISH_LENGTH
 
 CLIENT = None
 gemini_cache = {}
@@ -87,10 +88,13 @@ def translate_with_gemini(request, model, max_tokens, temperature=0.0):
     if response.candidates is None:
         return None
 
-    if response.candidates[0].finish_reason != "STOP":
+    if response.candidates[0].finish_reason == "MAX_TOKENS":
+        finish_reason = FINISH_LENGTH
+    elif response.candidates[0].finish_reason == "STOP":
+        finish_reason = FINISH_STOP
+    else:
         logging.warning(f"Finish reason: {response.candidates[0].finish_reason}; {response.text}")
         return None
-
 
     input_tokens = response.usage_metadata.prompt_token_count
     candidate_tokens = response.usage_metadata.candidates_token_count
@@ -103,4 +107,5 @@ def translate_with_gemini(request, model, max_tokens, temperature=0.0):
     
     return response.text, {"input_tokens": input_tokens,
                            "output_tokens": candidate_tokens + thinking_tokens,
-                           "thinking_tokens": thinking_tokens}
+                           "thinking_tokens": thinking_tokens, 
+                           "finish_reason": finish_reason}
