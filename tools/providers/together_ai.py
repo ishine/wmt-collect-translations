@@ -37,7 +37,7 @@ def process_with_mistral_7b(request, temperature=0.0):
 def process_with_together_ai(request, model, max_tokens=8192, temperature=0.0):
     client = lazy_get_client()
     import together
-    
+
     try:
         response = client.chat.completions.create(
             model=model,
