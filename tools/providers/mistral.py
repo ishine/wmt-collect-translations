@@ -15,11 +15,7 @@ def lazy_get_client():
     return CLIENT
 
 def process_with_mistral_medium(request, temperature=0.0):
-    return process_with_mistral(request, "mistral-medium-latest", max_tokens=32768, temperature=temperature)
-
-def process_with_magistral_medium(request, temperature=0.0):
-    return process_with_mistral(request, "magistral-medium-latest", max_tokens=32768, temperature=temperature)
-
+    return process_with_mistral(request, "mistral-medium-latest", max_tokens=8192, temperature=temperature)
 
 # setting max_tokens to None uses maximum allowed tokens of given model
 def process_with_mistral(request, model, max_tokens=None, temperature=0.0):

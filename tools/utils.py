@@ -17,7 +17,7 @@ from tools.providers.openai import process_with_openai_gpt4_1
 from tools.providers.anthropic import process_with_claude_4
 from tools.providers.google_translate import translate_with_google_api
 from tools.providers.yandex_translate import translate_with_yandex
-from tools.providers.mistral import process_with_mistral_medium, process_with_magistral_medium
+from tools.providers.mistral import process_with_mistral_medium
 from tools.providers.gemini import process_with_gemini_2_5_pro, process_with_gemma_3_12b, process_with_gemma_3_27b
 from tools.providers.microsoft_translator import translate_with_microsoft_api
 from tools.providers.deepl import translate_with_deepl
@@ -45,10 +45,7 @@ SYSTEMS = {
     'Gemini-2.5-Pro': process_with_gemini_2_5_pro,
     'Gemma-3-12B': process_with_gemma_3_12b,
     'Gemma-3-27B': process_with_gemma_3_27b,
-
     'DeepL': translate_with_deepl,
-
-    "Magistral-Medium": process_with_magistral_medium, # model is not able to translate at all
     'MicrosoftTranslator': translate_with_microsoft_api,
     'Phi-3-Medium': translate_with_phi3_medium,
 }
@@ -178,9 +175,12 @@ def _process_paragraph_level(system_name, request, translation_granularity='para
         # add tokens to the dictionary
         if paragraph_tokens is not None:
             for key, value in paragraph_tokens.items():
+                if key == "finish_reason":
+                    continue
                 if key not in tokens:
                     tokens[key] = 0
                 tokens[key] += value
+    tokens['finish_reason'] = FINISH_STOP
     return ('\n\n'.join(answers), tokens), translation_granularity
 
 
