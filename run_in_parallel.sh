@@ -1,13 +1,13 @@
 #!/bin/bash
 
-SESSION_NAME="medium"
+SESSION_NAME="gemini2.5"
 
 # Create a new tmux session
 tmux new-session -d -s $SESSION_NAME
 
-# 15, 8, 5
-for i in $(seq 0 15); do
-    CMD="sleep $i; conda activate wmt; source SECRETS.sh; python main.py --system 'Mistral-Medium' --parallel"
+# 31, 15, 8, 5
+for i in $(seq 0 31); do
+    CMD="sleep $i; conda activate wmt; source SECRETS.sh; python mist_collection.py --system 'Gemini-2.5-Pro' --parallel --subtask mist_mtqe"
 
     if [ $i -eq 0 ]; then
         # Send command to the first pane
