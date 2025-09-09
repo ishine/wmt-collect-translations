@@ -13,3 +13,5 @@ diskcache
 yandex_translate
 google-generativeai
 google-cloud-translate
+pandas
+google-genai
