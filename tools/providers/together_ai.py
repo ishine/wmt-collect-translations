@@ -12,26 +12,40 @@ def lazy_get_client():
         CLIENT = Together(api_key=os.environ.get("TOGETHER_API_KEY"))
     return CLIENT
 
-def process_with_deepseek_v3(request, temperature=0.0):
-    return process_with_together_ai(request, "deepseek-ai/DeepSeek-V3", max_tokens=8192, temperature=temperature)
+def process_with_deepseek_v3(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 8192
+    return process_with_together_ai(request, "deepseek-ai/DeepSeek-V3", max_tokens=max_tokens, temperature=temperature)
 
-def process_qwen3_235b(request, temperature=0.0):
-    return process_with_together_ai(request, "Qwen/Qwen3-235B-A22B-fp8-tput", max_tokens=8192, temperature=temperature)
+def process_qwen3_235b(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 8192
+    return process_with_together_ai(request, "Qwen/Qwen3-235B-A22B-fp8-tput", max_tokens=max_tokens, temperature=temperature)
 
-def process_qwen25_7b(request, temperature=0.0):
-    return process_with_together_ai(request, "Qwen/Qwen2.5-7B-Instruct-Turbo", max_tokens=8192, temperature=temperature)
+def process_qwen25_7b(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 8192
+    return process_with_together_ai(request, "Qwen/Qwen2.5-7B-Instruct-Turbo", max_tokens=max_tokens, temperature=temperature)
 
-def process_with_llama_4_maverick(request, temperature=0.0):
-    return process_with_together_ai(request, "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8", max_tokens=8192, temperature=temperature)
+def process_with_llama_4_maverick(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 8192
+    return process_with_together_ai(request, "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8", max_tokens=max_tokens, temperature=temperature)
 
-def process_with_llama_4_scout(request, temperature=0.0):
-    return process_with_together_ai(request, "meta-llama/Llama-4-Scout-17B-16E-Instruct", max_tokens=8192, temperature=temperature)
+def process_with_llama_4_scout(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 8192
+    return process_with_together_ai(request, "meta-llama/Llama-4-Scout-17B-16E-Instruct", max_tokens=max_tokens, temperature=temperature)
 
-def process_with_llama_3_1_8b(request, temperature=0.0):
-    return process_with_together_ai(request, "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", max_tokens=8192, temperature=temperature)
+def process_with_llama_3_1_8b(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 8192
+    return process_with_together_ai(request, "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", max_tokens=max_tokens, temperature=temperature)
 
-def process_with_mistral_7b(request, temperature=0.0):
-    return process_with_together_ai(request, "mistralai/Mistral-7B-Instruct-v0.3", max_tokens=8192, temperature=temperature)
+def process_with_mistral_7b(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 8192
+    return process_with_together_ai(request, "mistralai/Mistral-7B-Instruct-v0.3", max_tokens=max_tokens, temperature=temperature)
 
 
 def process_with_together_ai(request, model, max_tokens=8192, temperature=0.0):

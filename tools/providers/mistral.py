@@ -14,8 +14,10 @@ def lazy_get_client():
         CLIENT = Mistral(api_key=os.environ["MISTRAL_API_KEY"])
     return CLIENT
 
-def process_with_mistral_medium(request, temperature=0.0):
-    return process_with_mistral(request, "mistral-medium-latest", max_tokens=8192, temperature=temperature)
+def process_with_mistral_medium(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 8192
+    return process_with_mistral(request, "mistral-medium-latest", max_tokens=max_tokens, temperature=temperature)
 
 # setting max_tokens to None uses maximum allowed tokens of given model
 def process_with_mistral(request, model, max_tokens=None, temperature=0.0):

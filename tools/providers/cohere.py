@@ -15,17 +15,25 @@ def lazy_get_client():
     return CLIENT
 
 
-def process_with_command_A(request, temperature=0.0):
-    return process_with_cohere(request, "command-a-03-2025", max_tokens=8192, temperature=temperature)
+def process_with_command_A(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 8192
+    return process_with_cohere(request, "command-a-03-2025", max_tokens=max_tokens, temperature=temperature)
 
-def process_with_command_R7B(request, temperature=0.0):
-    return process_with_cohere(request, "command-r7b-12-2024", max_tokens=4096, temperature=temperature)
+def process_with_command_R7B(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 4096
+    return process_with_cohere(request, "command-r7b-12-2024", max_tokens=max_tokens, temperature=temperature)
 
-def process_with_aya_expanse_32B(request, temperature=0.0):
-    return process_with_cohere(request, "c4ai-aya-expanse-32b", max_tokens=8192, temperature=temperature)
+def process_with_aya_expanse_32B(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 8192
+    return process_with_cohere(request, "c4ai-aya-expanse-32b", max_tokens=max_tokens, temperature=temperature)
 
-def process_with_aya_expanse_8B(request, temperature=0.0):
-    return process_with_cohere(request, "c4ai-aya-expanse-8b", max_tokens=4096, temperature=temperature)
+def process_with_aya_expanse_8B(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 4096
+    return process_with_cohere(request, "c4ai-aya-expanse-8b", max_tokens=max_tokens, temperature=temperature)
 
 
 def process_with_cohere(request, model, max_tokens=8192, temperature=0.0):

@@ -13,12 +13,16 @@ def lazy_get_client():
     return CLIENT
 
 
-def process_with_claude_3_7(request, temperature=0.0):
-    return process_with_anthropic(request, "claude-3-7-sonnet-20250219", max_tokens=16384, temperature=temperature)
+def process_with_claude_3_7(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 16384
+    return process_with_anthropic(request, "claude-3-7-sonnet-20250219", max_tokens=max_tokens, temperature=temperature)
 
 
-def process_with_claude_4(request, temperature=0.0):
-    return process_with_anthropic(request, "claude-sonnet-4-20250514", max_tokens=16384, temperature=temperature)
+def process_with_claude_4(request, max_tokens=None, temperature=0.0):
+    if max_tokens is None:
+        max_tokens = 16384
+    return process_with_anthropic(request, "claude-sonnet-4-20250514", max_tokens=max_tokens, temperature=temperature)
 
 def process_with_anthropic(request, model, max_tokens, temperature=0.0):
     client = lazy_get_client()
