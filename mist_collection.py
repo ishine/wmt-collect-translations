@@ -66,14 +66,24 @@ def main(args):
         answers = collect_answers(blindset, FLAGS.system, "mist_mtqe")
         if answers is not None:
             mistdf = pd.DataFrame(answers)
-            
+
             if not FLAGS.parallel:
+                mistdf = mistdf.rename(columns={'answer': 'overall'})
+                mistdf['doc_id'] = blindset['doc_id']
+                mistdf['segment_id'] = blindset['segment_id']
+                mistdf['source_lang'] = blindset['source_lang']
+                mistdf['target_lang'] = blindset['target_lang']
+                mistdf['set_id'] = blindset['set_id']
+                mistdf['system_id'] = blindset['system_id']
+                mistdf['domain_name'] = blindset['domain_name']
+                mistdf['method'] = blindset['method']
+                
                 os.makedirs("wmt_mist_mtqe", exist_ok=True)
-                mistdf.to_json(f"wmt_mist_mtqe/{FLAGS.system}.json", orient='records', force_ascii=False)
+                mistdf.to_csv(f"wmt_mist_mtqe/{FLAGS.system}.tsv", sep='\t', index=False)
             else:
                 print("Running in parallel mode, not saving results to disk as the data are shuffled.")
-                
-            mist_num_none = mistdf[mistdf['answer'] == "FAILED"]['answer'].count()
+
+            mist_num_none = mistdf[mistdf['overall'] == "FAILED"]['overall'].count()
             print(f"Number of None answers in MIST MTQE: {mist_num_none}")
 
 

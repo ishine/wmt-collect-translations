@@ -238,7 +238,47 @@ def _request_system_directly(system_name, request):
         'answer': answer,
         "tokens": tokens
     }
+
+
+def _request_system_directly_mtqe(system_name, request, temperature=0.0, attempts=5):
+    if attempts <= 0:
+        return None
     
+    answer = SYSTEMS[system_name](request, temperature=temperature, max_tokens=30)
+
+    if answer is None:
+        return None
+
+    answer, tokens = answer
+
+    score = parse_number(answer)
+    if score is None:
+        print(f"Could not parse score from '{answer}' for taskid {request['taskid']} with temperature {temperature}. Attempts left: {attempts-1}")
+        return _request_system_directly_mtqe(system_name, request, temperature=0.3, attempts=attempts-1)
+
+    answer = answer.strip()
+    return {
+        'taskid': request['taskid'],
+        'answer': str(score),
+        "tokens": tokens
+    }
+
+
+def parse_number(text):
+    if text is None:
+        return None
+    s = str(text).strip()
+    import re
+    pattern = re.compile(r"\b(100|[0-9]{1,2})\b")
+    matches = pattern.findall(s)
+    if len(matches) != 1:
+        return None
+    try:
+        return int(matches[0])
+    except ValueError:
+        return None
+
+# TODO: WMT25 - track temperature and reasoning traces in metadata
 
 def collect_answers(blindset, system_name, task="general_mt"):
     cache = dc.Cache(f'cache/{system_name}', expire=None, size_limit=int(10e10), cull_limit=0, eviction_policy='none')
@@ -287,7 +327,7 @@ def collect_answers(blindset, system_name, task="general_mt"):
             answers[-1]['dataset_id'] = "wmttest2025"
             answers[-1]['tgt_lang'] = row['tgt_lang']
             answers[-1]['hypothesis'] = answers[-1].pop('translation')
-        elif task == "mist":
+        elif task == "mist" or task == "mist_oeg" or task == "mist_mtqe":
             if system_name in non_prompt_systems:
                 return None
             
@@ -298,7 +338,17 @@ def collect_answers(blindset, system_name, task="general_mt"):
             # None represent problem in the translation that was originally skipped
             if hashid not in cache or cache[hashid] is None:
                 try:
-                    cache[hashid] = _request_system_directly(system_name, row)
+                    if task == "mist_mtqe":
+                        if row['prompt'] is None:
+                            cache[hashid] = {
+                                'taskid': row['taskid'],
+                                'answer': 0,
+                            }
+                        else:
+                            print(f"Processing {row['taskid']} with {system_name} using MTQE")
+                            cache[hashid] = _request_system_directly_mtqe(system_name, row)
+                    else:
+                        cache[hashid] = _request_system_directly(system_name, row)
                 except Exception as e:
                     logging.error(f"Error processing {row['taskid']} with {system_name}: {e}")
                     logging.error(traceback.format_exc())
