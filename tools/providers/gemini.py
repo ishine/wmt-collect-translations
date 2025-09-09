@@ -48,28 +48,29 @@ def translate_with_gemini(request, model, max_tokens, temperature=0.0):
     client = lazy_get_client()
     from google.genai import types
 
-    if len(gemini_cache) > 0:
-        import hashlib
-        if "doc_id" in request:
-            hashid = f"{request['doc_id']}_{request['source_language']}_{request['target_language']}_{request['segment']}_{request['prompt_instruction']}"
+    # if len(gemini_cache) > 0:
+    #     import hashlib
+    #     if "doc_id" in request:
+    #         hashid = f"{request['doc_id']}_{request['source_language']}_{request['target_language']}_{request['segment']}_{request['prompt_instruction']}"
 
-        else:
-            hashid = f"{request['taskid']}_{request['prompt']}"
-        hashid = hashlib.md5(hashid.encode("utf-8")).hexdigest()
-        if hashid in gemini_cache:
-            result = gemini_cache[hashid]
-            input_tokens = result['usageMetadata']['promptTokenCount']
-            candidate_tokens = result['usageMetadata']['candidatesTokenCount']
-            thinking_tokens = result['usageMetadata']['thoughtsTokenCount']
-            return result['candidates'][0]['content']['parts'][0]['text'], {"input_tokens": input_tokens,
-                            "output_tokens": candidate_tokens + thinking_tokens,
-                            "thinking_tokens": thinking_tokens}
+    #     else:
+    #         hashid = f"{request['taskid']}_{request['prompt']}"
+    #     hashid = hashlib.md5(hashid.encode("utf-8")).hexdigest()
+    #     if hashid in gemini_cache:
+    #         result = gemini_cache[hashid]
+    #         input_tokens = result['usageMetadata']['promptTokenCount']
+    #         candidate_tokens = result['usageMetadata']['candidatesTokenCount']
+    #         thinking_tokens = result['usageMetadata']['thoughtsTokenCount']
+    #         return result['candidates'][0]['content']['parts'][0]['text'], {"input_tokens": input_tokens,
+    #                         "output_tokens": candidate_tokens + thinking_tokens,
+    #                         "thinking_tokens": thinking_tokens}
 
     
     config = types.GenerateContentConfig(
         temperature=temperature,
         max_output_tokens=max_tokens,
         response_mime_type="text/plain",
+        # thinking_config=types.ThinkingConfig(thinking_budget=128),
         safety_settings=[
             types.SafetySetting(category=category, threshold=types.HarmBlockThreshold.BLOCK_NONE)
             for category in [
