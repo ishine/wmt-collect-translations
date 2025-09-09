@@ -31,24 +31,11 @@ def main(args):
         if num_none > 0.25 * len(df[df['tgt_lang'] == tgt_lang]):
             df = df[df['tgt_lang'] != tgt_lang]
 
-    os.makedirs("wmt_translations", exist_ok=True)
-    df.to_json(f"wmt_translations/{FLAGS.system}.jsonl", orient='records', lines=True, force_ascii=False)
-
-    assert os.path.exists("blindset_mist_2025.json"), "Download blindset_mist_2025.json file from WMT website"
-    blindset = pd.read_json("blindset_mist_2025.json")
-    if FLAGS.parallel:
-        blindset = blindset.sample(frac=1, random_state=42).reset_index(drop=True)
-
-    answers = collect_answers(blindset, FLAGS.system, "mist")
-    if answers is not None:
-        mistdf = pd.DataFrame(answers)
-
-        os.makedirs("wmt_mist", exist_ok=True)
-        mistdf.to_json(f"wmt_mist/{FLAGS.system}.json", orient='records', force_ascii=False)
-
-        # print number of None answers
-        mist_num_none = mistdf[mistdf['answer'] == "FAILED"]['answer'].count()
-        print(f"Number of None answers in MIST: {mist_num_none}")
+    if not FLAGS.parallel:
+        os.makedirs("wmt_translations", exist_ok=True)
+        df.to_json(f"wmt_translations/{FLAGS.system}.jsonl", orient='records', lines=True, force_ascii=False)
+    else:
+        print("Running in parallel mode, not saving results to disk as the data are shuffled.")
 
     mt_num_none = df[df['hypothesis'].str.contains("FAILED", na=False)]['hypothesis'].count()
     print(f"Number of untranslated answers in MT: {mt_num_none}")
