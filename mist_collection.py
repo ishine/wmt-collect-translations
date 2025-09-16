@@ -12,7 +12,7 @@ from tools.utils import collect_answers, SYSTEMS
 
 flags.DEFINE_enum('system', 'CommandA', SYSTEMS, 'Define the system to use for translation')
 flags.DEFINE_bool('parallel', False, 'Run in parallel mode (default: False)')
-flags.DEFINE_enum('subtask', 'all', ['mist', 'mist_oeg', 'mist_mtqe', 'all'], 'Select which subtask to run (mist, mist_oeg, mist_mtqe, all)')
+flags.DEFINE_enum('subtask', 'all', ['mist', 'mist_oeg', 'mist_mtqe', 'mist_summ', 'all'], 'Select which subtask to run (mist, mist_oeg, mist_mtqe, all)')
 
 FLAGS = flags.FLAGS
 
@@ -55,6 +55,26 @@ def main(args):
 
             mist_num_none = mistdf[mistdf['answer'] == "FAILED"]['answer'].count()
             print(f"Number of None answers in MIST OEG: {mist_num_none}")
+
+
+    if FLAGS.subtask in ['mist_summ', 'all']:
+        assert os.path.exists("llm_judge_summ_2025_final.json"), "Download llm_judge_summ_2025_final.json file from WMT website"
+        blindset = pd.read_json("llm_judge_summ_2025_final.json")
+        if FLAGS.parallel:
+            blindset = blindset.sample(frac=1, random_state=42).reset_index(drop=True)
+
+        answers = collect_answers(blindset, FLAGS.system, "mist_summ")
+        if answers is not None:
+            mistdf = pd.DataFrame(answers)
+
+            if not FLAGS.parallel:
+                os.makedirs("wmt_mist_summ", exist_ok=True)
+                mistdf.to_json(f"wmt_mist_summ/{FLAGS.system}.json", orient='records', force_ascii=False)
+            else:
+                print("Running in parallel mode, not saving results to disk as the data are shuffled.")
+
+            mist_num_none = mistdf[mistdf['answer'] == "FAILED"]['answer'].count()
+            print(f"Number of None answers in MIST SUMM: {mist_num_none}")
 
 
     if FLAGS.subtask in ['mist_mtqe', 'all']:
