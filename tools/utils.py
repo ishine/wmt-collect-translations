@@ -327,7 +327,7 @@ def collect_answers(blindset, system_name, task="general_mt"):
             answers[-1]['dataset_id'] = "wmttest2025"
             answers[-1]['tgt_lang'] = row['tgt_lang']
             answers[-1]['hypothesis'] = answers[-1].pop('translation')
-        elif task == "mist" or task == "mist_oeg" or task == "mist_mtqe":
+        elif task in ["mist", "mist_oeg", "mist_mtqe", "mist_summ"]:
             if system_name in non_prompt_systems:
                 return None
             
@@ -338,7 +338,7 @@ def collect_answers(blindset, system_name, task="general_mt"):
             # None represent problem in the translation that was originally skipped
             if hashid not in cache or cache[hashid] is None:
                 try:
-                    if task == "mist_mtqe":
+                    if task in ["mist_mtqe", "mist_summ", "mist_oeg"]:
                         if row['prompt'] is None:
                             cache[hashid] = {
                                 'taskid': row['taskid'],
