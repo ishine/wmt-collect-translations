@@ -27,7 +27,7 @@ def process_with_command_R7B(request, max_tokens=None, temperature=0.0):
 
 def process_with_aya_expanse_32B(request, max_tokens=None, temperature=0.0):
     if max_tokens is None:
-        max_tokens = 8192
+        max_tokens = 4096
     return process_with_cohere(request, "c4ai-aya-expanse-32b", max_tokens=max_tokens, temperature=temperature)
 
 def process_with_aya_expanse_8B(request, max_tokens=None, temperature=0.0):
